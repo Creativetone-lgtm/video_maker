@@ -1,193 +1,208 @@
 import {Audio} from '@remotion/media';
 import type React from 'react';
-import {
-	AbsoluteFill,
-	Interactive,
-	interpolate,
-	staticFile,
-	useCurrentFrame,
-	useVideoConfig,
-	type InteractivitySchema,
-} from 'remotion';
-import {Background} from '../components';
-import {clamp, ease, fontFamily, theme} from '../theme';
+import {AbsoluteFill, Img, Interactive, interpolate, staticFile, useCurrentFrame, useVideoConfig, type InteractivitySchema} from 'remotion';
+import {backOut, brand, clamp, fontFamily, glassDark, inOut, progress} from '../theme';
+import {Background, Caption, Logo, Phone, PHONE, SCREEN, StatusBar, Tap} from '../ui';
 
 type Props = {
 	readonly callerName: string;
-	readonly headline: string;
+	readonly subtitle: string;
+	readonly caption: string;
 	readonly style?: React.CSSProperties;
 };
 
-const ANSWER = 118;
+const ANSWER = 108;
 
-const Ripple: React.FC<{readonly offset: number}> = ({offset}) => {
+const PhoneIcon: React.FC<{readonly size?: number; readonly rotate?: number}> = ({size = 64, rotate = 0}) => (
+	<svg width={size} height={size} viewBox="0 0 24 24" style={{rotate: `${rotate}deg`}}>
+		<path
+			fill="white"
+			d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"
+		/>
+	</svg>
+);
+
+const Ripple: React.FC<{readonly offset: number; readonly size: number; readonly color: string}> = ({offset, size, color}) => {
 	const frame = useCurrentFrame();
-	const p = ((frame + offset) % 45) / 45;
+	const p = ((frame + offset) % 40) / 40;
 	return (
 		<div
 			style={{
 				position: 'absolute',
-				width: 200,
-				height: 200,
-				borderRadius: 100,
-				border: `3px solid ${theme.accent2}`,
-				scale: String(1 + p * 1.4),
-				opacity: frame < ANSWER ? (1 - p) * 0.7 : 0,
+				left: -size / 2,
+				top: -size / 2,
+				width: size,
+				height: size,
+				borderRadius: '50%',
+				border: `4px solid ${color}`,
+				scale: String(1 + p * 0.9),
+				opacity: frame < ANSWER ? (1 - p) * 0.8 : 0,
 			}}
 		/>
 	);
 };
 
-const CallSceneInner: React.FC<Props> = ({callerName, headline, style}) => {
+const GRID = ['mute', 'keypad', 'speaker', 'add', 'FaceTime', 'contacts'];
+
+const CallSceneInner: React.FC<Props> = ({callerName, subtitle, caption, style}) => {
 	const frame = useCurrentFrame();
 	const {fps} = useVideoConfig();
 	const ringing = frame < ANSWER;
-	const shake = ringing && Math.floor(frame / 33) % 2 === 0 ? Math.sin(frame * 1.9) * 2.4 : 0;
-	const answered = interpolate(frame, [ANSWER, ANSWER + 12], [0, 1], {...clamp, easing: ease});
-	const seconds = Math.max(0, Math.floor((frame - ANSWER) / fps));
+	const shake = ringing && Math.floor(frame / 30) % 2 === 0 ? Math.sin(frame * 2.1) * 1.6 : 0;
+	const enter = progress(frame, 0, 18);
+	const answered = progress(frame, ANSWER, ANSWER + 14, inOut);
+	const seconds = Math.max(0, Math.floor((frame - ANSWER) / fps) + 1);
 	const dots = '.'.repeat((Math.floor(frame / 8) % 3) + 1);
+	const centerY = PHONE.top + PHONE.height / 2;
 
 	return (
 		<AbsoluteFill style={{fontFamily, ...style}}>
 			<Background />
-
-			<div
-				style={{
-					position: 'absolute',
-					left: 160,
-					top: 300,
-					width: 820,
-					opacity: interpolate(frame, [4, 18], [0, 1], clamp),
-					translate: `${interpolate(frame, [4, 26], [-60, 0], {...clamp, easing: ease})}px 0px`,
-				}}
-			>
-				<div style={{fontSize: 34, fontWeight: 700, color: theme.accent, letterSpacing: 2, textTransform: 'uppercase'}}>
-					Moments later…
-				</div>
-				<div style={{marginTop: 20, fontSize: 108, fontWeight: 800, lineHeight: 1.02, letterSpacing: -4, color: 'white', whiteSpace: 'pre-line'}}>
-					{headline}
-				</div>
-				<div
-					style={{
-						marginTop: 34,
-						fontSize: 40,
-						color: theme.muted,
-						opacity: interpolate(frame, [20, 34], [0, 1], clamp),
-					}}
-				>
-					No chasing. No waiting. We call you.
-				</div>
+			{/* Ringing waves around the phone */}
+			<div style={{position: 'absolute', left: 540, top: centerY}}>
+				<Ripple offset={0} size={1500} color="rgba(255,84,8,0.35)" />
+				<Ripple offset={13} size={1500} color="rgba(255,84,8,0.3)" />
+				<Ripple offset={26} size={1500} color="rgba(255,84,8,0.25)" />
 			</div>
+			<AbsoluteFill style={{scale: String(0.94 + enter * 0.04 + answered * 0.02)}}>
+				<Phone style={{rotate: `${shake}deg`}}>
+					{/* Poster wallpaper: the site, blurred in brand colour */}
+					<AbsoluteFill style={{overflow: 'hidden'}}>
+						<Img
+							src={staticFile('site/page-00.jpg')}
+							style={{position: 'absolute', left: -120, top: -100, width: SCREEN.width + 240, filter: 'blur(50px) saturate(1.4)', scale: '1.3'}}
+						/>
+						<AbsoluteFill
+							style={{
+								background: `linear-gradient(180deg, rgba(255,84,8,0.55) 0%, rgba(30,23,20,0.55) 55%, rgba(30,23,20,0.85) 100%)`,
+							}}
+						/>
+						<AbsoluteFill style={{backgroundColor: `rgba(16,60,32,${answered * 0.35})`}} />
+					</AbsoluteFill>
+					<StatusBar color="white" />
 
-			{/* Phone */}
-			<div
-				style={{
-					position: 'absolute',
-					left: 1180,
-					top: 90,
-					width: 470,
-					height: 900,
-					borderRadius: 70,
-					padding: 16,
-					background: '#1A1A26',
-					boxShadow: '0 60px 140px rgba(0,0,0,0.6), 0 0 0 2px rgba(255,255,255,0.12)',
-					rotate: `${shake}deg`,
-					translate: `0px ${interpolate(frame, [0, 24], [120, 0], {...clamp, easing: ease})}px`,
-					opacity: interpolate(frame, [0, 12], [0, 1], clamp),
-				}}
-			>
-				<div
-					style={{
-						position: 'relative',
-						width: '100%',
-						height: '100%',
-						borderRadius: 56,
-						overflow: 'hidden',
-						background: `linear-gradient(180deg, #2B1240 0%, #12121F 60%, ${answered > 0 ? '#0E2A1B' : '#12121F'} 100%)`,
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						color: 'white',
-					}}
-				>
-					<div style={{marginTop: 18, width: 130, height: 36, borderRadius: 18, background: 'black'}} />
-					<div style={{marginTop: 50, fontSize: 24, color: theme.muted, fontWeight: 500}}>
-						{ringing ? 'Incoming call' : 'Connected'}
-					</div>
-					<div style={{position: 'relative', marginTop: 70, width: 200, height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-						<Ripple offset={0} />
-						<Ripple offset={15} />
-						<Ripple offset={30} />
-						<div
-							style={{
-								width: 200,
-								height: 200,
-								borderRadius: 100,
-								background: theme.gradient,
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								fontSize: 78,
-								fontWeight: 800,
-								letterSpacing: -2,
-								boxShadow: '0 20px 60px rgba(255,46,147,0.45)',
-							}}
-						>
-							CT
+					<div style={{position: 'absolute', left: 0, right: 0, top: 150, textAlign: 'center', color: 'white'}}>
+						<div style={{fontSize: 32, fontWeight: 500, opacity: 0.8}}>{ringing ? 'incoming call' : 'connected'}</div>
+						<div style={{marginTop: 14, fontSize: 84, fontWeight: 700, letterSpacing: -2}}>{callerName}</div>
+						<div style={{marginTop: 8, fontSize: 36, fontWeight: 500, opacity: 0.85}}>
+							{ringing ? `${subtitle}${dots}` : `00:0${seconds}`}
 						</div>
 					</div>
-					<div style={{marginTop: 60, fontSize: 52, fontWeight: 800, letterSpacing: -1}}>{callerName}</div>
-					<div style={{marginTop: 12, fontSize: 28, color: ringing ? theme.muted : theme.success, fontWeight: 600}}>
-						{ringing ? `calling${dots}` : `00:0${seconds}`}
-					</div>
-					<div style={{marginTop: 10, fontSize: 22, color: theme.muted}}>Strategy call · E-commerce</div>
 
-					<div style={{position: 'absolute', bottom: 80, left: 0, right: 0, display: 'flex', justifyContent: 'space-around'}}>
+					{/* Contact poster */}
+					<div
+						style={{
+							position: 'absolute',
+							left: SCREEN.width / 2,
+							top: 700 - answered * 120,
+							scale: String(interpolate(frame, [4, 22], [0.6, 1], {...clamp, easing: backOut}) * (1 - answered * 0.35)),
+						}}
+					>
+						<Ripple offset={0} size={340} color="rgba(255,255,255,0.6)" />
+						<Ripple offset={20} size={340} color="rgba(255,255,255,0.5)" />
 						<div
 							style={{
-								width: 104,
-								height: 104,
-								borderRadius: 52,
-								backgroundColor: '#EF4444',
+								...glassDark,
+								position: 'absolute',
+								left: -170,
+								top: -170,
+								width: 340,
+								height: 340,
+								borderRadius: 170,
+								background: brand.button,
 								display: 'flex',
 								alignItems: 'center',
 								justifyContent: 'center',
-								fontSize: 46,
-								opacity: 1 - answered,
-								scale: String(1 - answered * 0.4),
+								boxShadow: '0 30px 80px rgba(255,84,8,0.55), inset 0 3px 4px rgba(255,255,255,0.5)',
 							}}
 						>
-							<div style={{rotate: '135deg', display: 'flex'}}><svg width="50" height="50" viewBox="0 0 24 24"><path fill="white" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" /></svg></div>
-						</div>
-						<div
-							style={{
-								width: 104,
-								height: 104,
-								borderRadius: 52,
-								backgroundColor: theme.success,
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								fontSize: 46,
-								boxShadow: ringing ? `0 0 0 ${10 + Math.sin(frame / 4) * 8}px rgba(34,197,94,0.25)` : 'none',
-								scale: String(interpolate(frame, [ANSWER - 4, ANSWER, ANSWER + 6], [1, 0.85, 1], clamp)),
-								translate: `${interpolate(frame, [ANSWER, ANSWER + 14], [0, -112], {...clamp, easing: ease})}px 0px`,
-							}}
-						>
-							<svg width="50" height="50" viewBox="0 0 24 24"><path fill="white" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" /></svg>
+							<Logo width={250} color="white" />
 						</div>
 					</div>
-				</div>
-			</div>
-			<Audio name="Ringtone" src={staticFile('ring.wav')} from={6} durationInFrames={ANSWER - 6} premountFor={fps} volume={0.9} />
-			<Audio name="Answer tap" src={staticFile('click.wav')} from={ANSWER - 1} premountFor={fps} />
+
+					{/* Ringing controls */}
+					<div style={{opacity: 1 - answered}}>
+						<div style={{position: 'absolute', left: 0, right: 0, top: 1180, display: 'flex', justifyContent: 'space-around', padding: '0 70px'}}>
+							{['Remind Me', 'Message'].map((l) => (
+								<div key={l} style={{...glassDark, padding: '20px 34px', borderRadius: 999, color: 'white', fontSize: 30, fontWeight: 600}}>
+									{l}
+								</div>
+							))}
+						</div>
+						<div style={{position: 'absolute', left: 0, right: 0, top: 1360, display: 'flex', justifyContent: 'space-between', padding: '0 110px'}}>
+							<div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14}}>
+								<div style={{width: 160, height: 160, borderRadius: 80, backgroundColor: brand.danger, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'inset 0 3px 3px rgba(255,255,255,0.35)'}}>
+									<PhoneIcon rotate={135} />
+								</div>
+								<div style={{color: 'white', fontSize: 30, fontWeight: 500}}>Decline</div>
+							</div>
+							<div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14}}>
+								<div
+									style={{
+										width: 160,
+										height: 160,
+										borderRadius: 80,
+										backgroundColor: brand.success,
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										boxShadow: `0 0 0 ${12 + Math.sin(frame / 3.5) * 10}px rgba(52,199,89,0.3), inset 0 3px 3px rgba(255,255,255,0.35)`,
+										scale: String(interpolate(frame, [ANSWER - 3, ANSWER, ANSWER + 5], [1, 0.86, 1], clamp)),
+									}}
+								>
+									<div style={{rotate: `${Math.sin(frame / 2) * 12}deg`, display: 'flex'}}>
+										<PhoneIcon />
+									</div>
+								</div>
+								<div style={{color: 'white', fontSize: 30, fontWeight: 500}}>Accept</div>
+							</div>
+						</div>
+					</div>
+
+					{/* Connected controls */}
+					<div style={{opacity: answered, translate: `0px ${(1 - answered) * 80}px`}}>
+						<div style={{position: 'absolute', left: 90, right: 90, top: 900, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', rowGap: 50}}>
+							{GRID.map((g) => (
+								<div key={g} style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12}}>
+									<div style={{...glassDark, width: 150, height: 150, borderRadius: 75}} />
+									<div style={{color: 'white', fontSize: 26, fontWeight: 500}}>{g}</div>
+								</div>
+							))}
+						</div>
+						<div
+							style={{
+								position: 'absolute',
+								left: SCREEN.width / 2 - 80,
+								top: 1400,
+								width: 160,
+								height: 160,
+								borderRadius: 80,
+								backgroundColor: brand.danger,
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+							}}
+						>
+							<PhoneIcon rotate={135} />
+						</div>
+					</div>
+
+					<Tap x={SCREEN.width - 190} y={1440} at={ANSWER} />
+				</Phone>
+			</AbsoluteFill>
+
+			<Caption at={6}>{caption}</Caption>
+
+			<Audio name="Ringtone" src={staticFile('ring.wav')} from={4} durationInFrames={ANSWER - 4} premountFor={fps} volume={0.95} />
+			<Audio name="Answer tap" src={staticFile('tap.wav')} from={ANSWER - 1} premountFor={fps} />
 		</AbsoluteFill>
 	);
 };
 
 const schema = {
-	callerName: {type: 'text-content', default: 'Creativetone', description: 'Caller name'},
-	headline: {type: 'text-content', default: 'Creativetone\nis calling.', description: 'Headline'},
+	callerName: {type: 'text-content', default: 'CreativeTone', description: 'Caller name'},
+	subtitle: {type: 'text-content', default: 'Strategy call', description: 'Call subtitle'},
+	caption: {type: 'text-content', default: 'Then… we call you.', description: 'Caption'},
 } as const satisfies InteractivitySchema;
 
 export const CallScene = Interactive.withSchema({

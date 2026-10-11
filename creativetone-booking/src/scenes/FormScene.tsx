@@ -1,289 +1,231 @@
 import {Audio} from '@remotion/media';
 import type React from 'react';
-import {
-	AbsoluteFill,
-	Interactive,
-	interpolate,
-	Sequence,
-	staticFile,
-	useCurrentFrame,
-	useVideoConfig,
-	type InteractivitySchema,
-} from 'remotion';
-import {Background, BrowserFrame, Caret, Cursor, StepPill} from '../components';
-import {clamp, DOMAIN, ease, fontFamily, theme, typed, typingDuration} from '../theme';
+import {AbsoluteFill, Interactive, interpolate, Sequence, staticFile, useCurrentFrame, useVideoConfig, type InteractivitySchema} from 'remotion';
+import {backOut, brand, clamp, fontFamily, glass, inOut, masked, progress, typed} from '../theme';
+import {Background, Caption, focusY, FORM_SCROLL, Keyboard, Phone, SitePage, StatusBar, Tap} from '../ui';
+import {BUTTON, Card, CARD, Field, fieldCenterY, FIELD_TOPS, INPUT} from './FormCard';
 
 type Props = {
-	readonly fullName: string;
-	readonly email: string;
-	readonly phone: string;
 	readonly industry: string;
+	readonly buttonLabel: string;
 	readonly style?: React.CSSProperties;
 };
 
-// Timeline (frames) of the form interaction
-const NAME_CLICK = 16;
-const NAME_TYPE = 20;
-const EMAIL_CLICK = 56;
-const EMAIL_TYPE = 60;
-const PHONE_CLICK = 112;
-const PHONE_TYPE = 116;
-const INDUSTRY_CLICK = 160;
-const OPTION_CLICK = 194;
-const SEND_CLICK = 222;
+// Details are masked — the keys pressed are just decoration.
+const NAME = masked(10);
+const COMPANY = masked(8);
+const EMAIL = masked(14);
+const PHONE_NO = masked(11);
+const KEYS = 'creativetonestrategycallgrowth';
 
-const INDUSTRIES = ['Real Estate', 'E-commerce', 'Healthcare', 'Hospitality'];
-
-const Field: React.FC<{
-	readonly label: string;
-	readonly value: string;
-	readonly focused: boolean;
-	readonly top: number;
-	readonly trailing?: React.ReactNode;
-}> = ({label, value, focused, top, trailing}) => {
-	const filled = value.length > 0;
-	return (
-		<div
-			style={{
-				position: 'absolute',
-				left: 56,
-				right: 56,
-				top,
-				height: 70,
-				borderRadius: 16,
-				border: focused ? `2.5px solid ${theme.accent}` : `1.5px solid ${theme.line}`,
-				boxShadow: focused ? '0 0 0 6px rgba(255,77,46,0.14)' : 'none',
-				backgroundColor: filled || focused ? 'white' : '#FAFAFC',
-				display: 'flex',
-				alignItems: 'center',
-				padding: '0 24px',
-			}}
-		>
-			<div
-				style={{
-					position: 'absolute',
-					left: 24,
-					top: filled ? 8 : 22,
-					fontSize: filled ? 16 : 24,
-					fontWeight: filled ? 700 : 500,
-					letterSpacing: filled ? 0.5 : 0,
-					textTransform: filled ? 'uppercase' : 'none',
-					color: focused ? theme.accent : theme.inkMuted,
-				}}
-			>
-				{label}
-			</div>
-			<div style={{marginTop: 22, fontSize: 26, fontWeight: 600, color: theme.ink}}>
-				{value}
-				{focused ? <Caret height={26} /> : null}
-			</div>
-			<div style={{marginLeft: 'auto'}}>{trailing}</div>
-		</div>
-	);
+const T = {
+	name: 10,
+	company: 42,
+	email: 68,
+	phone: 104,
+	keyboardDown: 132,
+	industry: 148,
+	option: 178,
+	send: 206,
 };
 
-const FormSceneInner: React.FC<Props> = ({fullName, email, phone, industry, style}) => {
+export const INDUSTRIES = [
+	'Healthcare & Doctors',
+	'Restaurants & Cafes',
+	'Beauty & Wellness',
+	'Retail & E-commerce',
+	'Real Estate',
+	'Automotive',
+	'Professional Services',
+];
+
+const MENU = {top: 300, itemH: 86, pad: 14};
+
+const FormSceneInner: React.FC<Props> = ({industry, buttonLabel, style}) => {
 	const frame = useCurrentFrame();
 	const {fps} = useVideoConfig();
 
 	const focus =
-		frame >= SEND_CLICK - 4
-			? 'none'
-			: frame >= INDUSTRY_CLICK
+		frame >= T.keyboardDown
+			? frame >= T.industry && frame < T.option + 6
 				? 'industry'
-				: frame >= PHONE_CLICK
-					? 'phone'
-					: frame >= EMAIL_CLICK
-						? 'email'
-						: frame >= NAME_CLICK
+				: 'none'
+			: frame >= T.phone
+				? 'phone'
+				: frame >= T.email
+					? 'email'
+					: frame >= T.company
+						? 'company'
+						: frame >= T.name
 							? 'name'
 							: 'none';
 
-	const dropdown = interpolate(
+	const kb = progress(frame, T.name + 2, T.name + 14) * (1 - progress(frame, T.keyboardDown, T.keyboardDown + 12, inOut));
+	const typingField =
+		frame >= T.phone + 4 ? T.phone + 4 : frame >= T.email + 4 ? T.email + 4 : frame >= T.company + 4 ? T.company + 4 : T.name + 4;
+	const keyIndex = Math.floor((frame - typingField) / 2);
+	const keyDown = frame < T.keyboardDown && keyIndex >= 0 && keyIndex < 14 ? KEYS[(keyIndex + typingField) % KEYS.length] : null;
+
+	const menu = interpolate(frame, [T.industry + 2, T.industry + 14], [0, 1], {...clamp, easing: backOut}) * (1 - progress(frame, T.option + 4, T.option + 12, inOut));
+	const selected = frame >= T.option ? industry : '';
+	const sending = frame >= T.send + 4;
+	const sendPress = interpolate(frame, [T.send - 2, T.send, T.send + 6], [1, 0.93, 1], clamp);
+
+	// Camera follows the active field
+	const fy = interpolate(
 		frame,
-		[INDUSTRY_CLICK, INDUSTRY_CLICK + 10, OPTION_CLICK + 2, OPTION_CLICK + 10],
-		[0, 1, 1, 0],
-		{...clamp, easing: ease},
+		[0, 12, T.company - 4, T.company + 6, T.email - 4, T.email + 6, T.phone - 4, T.phone + 6, T.keyboardDown, T.industry + 4, T.option + 10, T.send - 4],
+		[fieldCenterY('name'), fieldCenterY('name'), fieldCenterY('name'), fieldCenterY('company'), fieldCenterY('company'), fieldCenterY('email'), fieldCenterY('email'), fieldCenterY('phone'), fieldCenterY('phone'), 640, 640, BUTTON.top + BUTTON.height / 2],
+		{...clamp, easing: inOut},
 	);
-	const hoverIndex = frame < 177 ? 0 : frame < 186 ? 2 : 1;
-	const selected = frame >= OPTION_CLICK ? industry : '';
-	const sending = frame >= SEND_CLICK + 4;
-	const sendPress = interpolate(frame, [SEND_CLICK - 3, SEND_CLICK, SEND_CLICK + 6], [1, 0.94, 1], clamp);
+	const zoom = progress(frame, 0, 14, inOut);
+	const scale = 1 + zoom * 0.15;
+	const ty = zoom * focusY(fy, 1.15, 900);
+	const cardIn = progress(frame, 0, 8);
 
 	return (
 		<AbsoluteFill style={{fontFamily, ...style}}>
 			<Background />
-			<AbsoluteFill
-				style={{
-					scale: interpolate(frame, [0, 16], [1, 1.15], {...clamp, easing: ease}),
-					translate: interpolate(
-						frame,
-						[0, 16, 44, 56, 102, 112, 148, 160, 202, 218],
-						['0px 0px', '0px 171px', '0px 171px', '0px 70px', '0px 70px', '0px -31px', '0px -31px', '0px -132px', '0px -132px', '0px -271px'],
-						{...clamp, easing: ease},
-					),
-				}}
-			>
-				<BrowserFrame url={<span>{DOMAIN}/book-strategy</span>}>
-					<AbsoluteFill style={{background: 'linear-gradient(180deg,#F7F6FB 0%,#FFFFFF 100%)'}}>
+			<AbsoluteFill style={{scale: String(scale), translate: `0px ${ty}px`}}>
+				<Phone>
+					<SitePage scrollY={FORM_SCROLL} />
+					<Card style={{opacity: cardIn}}>
+						<Field label="Name" top={FIELD_TOPS.name} value={typed(NAME, frame, T.name + 4)} focused={focus === 'name'} />
+						<Field label="Company" top={FIELD_TOPS.company} value={typed(COMPANY, frame, T.company + 4)} focused={focus === 'company'} />
+						<Field label="Email" top={FIELD_TOPS.email} value={typed(EMAIL, frame, T.email + 4)} focused={focus === 'email'} />
+						<Field label="Phone" top={FIELD_TOPS.phone} value={typed(PHONE_NO, frame, T.phone + 4)} focused={focus === 'phone'} />
+						<Field label="Industry" top={FIELD_TOPS.industry} height={89} value={selected} placeholder="Select" focused={focus === 'industry'} select />
 						<div
 							style={{
 								position: 'absolute',
-								left: 350,
-								top: 30,
-								width: 900,
-								height: 676,
-								borderRadius: 32,
-								backgroundColor: 'white',
-								boxShadow: '0 30px 80px rgba(20,20,50,0.12), 0 0 0 1px #EEEEF5',
+								left: BUTTON.left - CARD.left,
+								top: BUTTON.top - CARD.top,
+								width: BUTTON.width,
+								height: BUTTON.height,
+								borderRadius: 49,
+								background: brand.button,
+								color: 'white',
+								fontSize: 34,
+								fontWeight: 700,
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								gap: 14,
+								boxShadow: `0 16px 34px rgba(255,84,8,0.4), inset 0 2px 2px rgba(255,255,255,0.4), 0 0 0 ${progress(frame, T.send, T.send + 18) * 24}px rgba(255,84,8,${0.35 * (1 - progress(frame, T.send, T.send + 18))})`,
+								scale: String(sendPress),
 							}}
 						>
-							<div style={{position: 'absolute', left: 56, top: 44, fontSize: 44, fontWeight: 800, color: theme.ink, letterSpacing: -1.2}}>
-								Book your strategy call
-							</div>
-							<div style={{position: 'absolute', left: 56, top: 104, fontSize: 22, color: theme.inkMuted}}>
-								Takes 30 seconds. We&apos;ll call you — no back-and-forth.
-							</div>
-							<Field label="Full name" value={typed(fullName, frame, NAME_TYPE)} focused={focus === 'name'} top={160} />
-							<Field label="Work email" value={typed(email, frame, EMAIL_TYPE)} focused={focus === 'email'} top={248} />
-							<Field label="Phone" value={typed(phone, frame, PHONE_TYPE)} focused={focus === 'phone'} top={336} />
-							<Field
-								label="Industry"
-								value={selected}
-								focused={focus === 'industry'}
-								top={424}
-								trailing={
-									<div style={{fontSize: 22, color: theme.inkMuted, rotate: `${dropdown * 180}deg`}}>▼</div>
-								}
-							/>
-							<div
-								style={{
-									position: 'absolute',
-									left: 56,
-									right: 56,
-									top: 540,
-									height: 80,
-									borderRadius: 18,
-									background: theme.gradient,
-									color: 'white',
-									fontSize: 30,
-									fontWeight: 800,
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'center',
-									gap: 16,
-									boxShadow: '0 18px 36px rgba(255,46,147,0.3)',
-									scale: String(sendPress),
-								}}
-							>
-								{sending ? (
-									<>
-										<div
-											style={{
-												width: 30,
-												height: 30,
-												borderRadius: 15,
-												border: '4px solid rgba(255,255,255,0.35)',
-												borderTopColor: 'white',
-												rotate: `${frame * 14}deg`,
-											}}
-										/>
-										Sending…
-									</>
-								) : (
-									'Send request  ➜'
-								)}
-							</div>
-							{/* Industry dropdown */}
-							<div
-								style={{
-									position: 'absolute',
-									left: 56,
-									right: 56,
-									top: 502,
-									padding: 8,
-									borderRadius: 18,
-									backgroundColor: 'white',
-									boxShadow: '0 30px 60px rgba(20,20,50,0.22), 0 0 0 1px #EEEEF5',
-									opacity: dropdown,
-									translate: `0px ${(1 - dropdown) * -16}px`,
-									transformOrigin: 'top center',
-									scale: String(0.96 + dropdown * 0.04),
-								}}
-							>
-								{INDUSTRIES.map((item, i) => {
-									const hovered = dropdown > 0.5 && i === hoverIndex;
-									return (
-										<div
-											key={item}
-											style={{
-												height: 58,
-												borderRadius: 12,
-												display: 'flex',
-												alignItems: 'center',
-												padding: '0 20px',
-												fontSize: 25,
-												fontWeight: hovered ? 700 : 500,
-												color: hovered ? theme.accent : theme.ink,
-												backgroundColor: hovered ? '#FFF1EE' : 'transparent',
-											}}
-										>
-											{item}
-										</div>
-									);
-								})}
-							</div>
+							{sending ? (
+								<>
+									<div
+										style={{
+											width: 36,
+											height: 36,
+											borderRadius: 18,
+											border: '5px solid rgba(255,255,255,0.35)',
+											borderTopColor: 'white',
+											rotate: `${frame * 15}deg`,
+										}}
+									/>
+									Sending…
+								</>
+							) : (
+								buttonLabel
+							)}
 						</div>
-					</AbsoluteFill>
-				</BrowserFrame>
-				<Cursor
-					points={[
-						{f: 0, x: 1300, y: 700},
-						{f: 14, x: 720, y: 395},
-						{f: 44, x: 720, y: 395},
-						{f: 54, x: 760, y: 483},
-						{f: 102, x: 760, y: 483},
-						{f: 110, x: 700, y: 571},
-						{f: 148, x: 700, y: 571},
-						{f: 158, x: 1250, y: 659},
-						{f: 172, x: 800, y: 735},
-						{f: 182, x: 810, y: 851},
-						{f: 190, x: 800, y: 793},
-						{f: 204, x: 800, y: 793},
-						{f: 218, x: 960, y: 780},
-					]}
-					clicks={[NAME_CLICK, EMAIL_CLICK, PHONE_CLICK, INDUSTRY_CLICK, OPTION_CLICK, SEND_CLICK]}
-				/>
+					</Card>
+
+					{/* iOS 26-style glass menu for the industry select */}
+					<div
+						style={{
+							...glass,
+							background: 'linear-gradient(160deg, rgba(255,255,255,0.78) 0%, rgba(255,244,236,0.62) 100%)',
+							position: 'absolute',
+							left: CARD.left + INPUT.left,
+							top: MENU.top,
+							width: INPUT.width,
+							padding: MENU.pad,
+							borderRadius: 44,
+							transformOrigin: '50% 100%',
+							scale: String(0.6 + menu * 0.4),
+							opacity: Math.min(1, menu),
+							zIndex: 50,
+							boxShadow: '0 40px 80px rgba(150,60,20,0.3), inset 0 2px 2px rgba(255,255,255,0.95)',
+						}}
+					>
+						{INDUSTRIES.map((item, i) => {
+							const isPick = item === industry;
+							const hl = isPick && frame >= T.option - 6;
+							return (
+								<div
+									key={item}
+									style={{
+										height: MENU.itemH,
+										borderRadius: 30,
+										display: 'flex',
+										alignItems: 'center',
+										padding: '0 28px',
+										fontSize: 34,
+										fontWeight: hl ? 700 : 500,
+										color: hl ? brand.orange : brand.ink,
+										backgroundColor: hl ? 'rgba(255,84,8,0.12)' : 'transparent',
+										opacity: progress(frame, T.industry + 4 + i * 1.5, T.industry + 12 + i * 1.5),
+									}}
+								>
+									{item}
+									{frame >= T.option && isPick ? (
+										<svg width="34" height="34" viewBox="0 0 24 24" style={{marginLeft: 'auto'}}>
+											<path d="M5 12.5l4.5 4.5L19 7.5" stroke={brand.orange} strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+										</svg>
+									) : null}
+								</div>
+							);
+						})}
+					</div>
+
+					<StatusBar />
+					<Keyboard shown={kb} pressed={keyDown} returnLabel="next" />
+
+					<Tap x={380} y={fieldCenterY('name')} at={T.name} />
+					<Tap x={420} y={fieldCenterY('company')} at={T.company} />
+					<Tap x={360} y={fieldCenterY('email')} at={T.email} />
+					<Tap x={400} y={fieldCenterY('phone')} at={T.phone} />
+					<Tap x={420} y={FIELD_TOPS.industry + 45} at={T.industry} />
+					<Tap x={340} y={MENU.top + MENU.pad + (INDUSTRIES.indexOf(industry) + 0.5) * MENU.itemH} at={T.option} />
+					<Tap x={BUTTON.left + BUTTON.width / 2} y={BUTTON.top + BUTTON.height / 2} at={T.send} />
+				</Phone>
 			</AbsoluteFill>
 
-			<Sequence name="Step 03" durationInFrames={150} premountFor={fps}>
-				<StepPill step="STEP 03" label="Tell us who you are" />
-			</Sequence>
-			<Sequence name="Step 04" from={150} durationInFrames={56} premountFor={fps}>
-				<StepPill step="STEP 04" label="Choose your industry" />
-			</Sequence>
-			<Sequence name="Step 05" from={206} premountFor={fps}>
-				<StepPill step="STEP 05" label="Hit send" />
-			</Sequence>
+			<Caption step="3" at={2} until={T.keyboardDown + 8}>
+				Add your details
+			</Caption>
+			<Caption step="4" at={T.keyboardDown + 10} until={T.send - 10}>
+				Pick your industry
+			</Caption>
+			<Caption step="5" at={T.send - 8}>
+				Send it
+			</Caption>
 
-			<Audio name="Click name" src={staticFile('click.wav')} from={NAME_CLICK - 1} premountFor={fps} />
-			<Audio name="Type name" src={staticFile('typing.wav')} from={NAME_TYPE} durationInFrames={typingDuration(fullName)} premountFor={fps} volume={0.8} />
-			<Audio name="Click email" src={staticFile('click.wav')} from={EMAIL_CLICK - 1} premountFor={fps} />
-			<Audio name="Type email" src={staticFile('typing.wav')} from={EMAIL_TYPE} durationInFrames={typingDuration(email)} premountFor={fps} volume={0.8} />
-			<Audio name="Click phone" src={staticFile('click.wav')} from={PHONE_CLICK - 1} premountFor={fps} />
-			<Audio name="Type phone" src={staticFile('typing.wav')} from={PHONE_TYPE} durationInFrames={typingDuration(phone)} premountFor={fps} volume={0.8} />
-			<Audio name="Click industry" src={staticFile('click.wav')} from={INDUSTRY_CLICK - 1} premountFor={fps} />
-			<Audio name="Click option" src={staticFile('click.wav')} from={OPTION_CLICK - 1} premountFor={fps} />
-			<Audio name="Click send" src={staticFile('click.wav')} from={SEND_CLICK - 1} premountFor={fps} />
+			<Audio name="Tap name" src={staticFile('tap.wav')} from={T.name - 1} premountFor={fps} />
+			<Sequence name="Typing" from={T.name + 4} durationInFrames={T.keyboardDown - T.name - 4} premountFor={fps}>
+				<Audio name="Type name" src={staticFile('typing.wav')} durationInFrames={NAME.length * 2} />
+				<Audio name="Tap company" src={staticFile('tap.wav')} from={T.company - T.name - 5} />
+				<Audio name="Type company" src={staticFile('typing.wav')} from={T.company - T.name} durationInFrames={COMPANY.length * 2} />
+				<Audio name="Tap email" src={staticFile('tap.wav')} from={T.email - T.name - 5} />
+				<Audio name="Type email" src={staticFile('typing.wav')} from={T.email - T.name} durationInFrames={EMAIL.length * 2} />
+				<Audio name="Tap phone" src={staticFile('tap.wav')} from={T.phone - T.name - 5} />
+				<Audio name="Type phone" src={staticFile('typing.wav')} from={T.phone - T.name} durationInFrames={PHONE_NO.length * 2} />
+			</Sequence>
+			<Audio name="Tap industry" src={staticFile('tap.wav')} from={T.industry - 1} premountFor={fps} />
+			<Audio name="Tap option" src={staticFile('tap.wav')} from={T.option - 1} premountFor={fps} />
+			<Audio name="Tap send" src={staticFile('tap.wav')} from={T.send - 1} premountFor={fps} />
 		</AbsoluteFill>
 	);
 };
 
 const schema = {
-	fullName: {type: 'text-content', default: 'Alex Morgan', description: 'Name typed'},
-	email: {type: 'text-content', default: 'alex@brightstudio.co', description: 'Email typed'},
-	phone: {type: 'text-content', default: '+1 415 555 0142', description: 'Phone typed'},
-	industry: {type: 'text-content', default: 'E-commerce', description: 'Industry selected'},
+	industry: {type: 'text-content', default: 'Healthcare & Doctors', description: 'Industry picked'},
+	buttonLabel: {type: 'text-content', default: 'Start a Project', description: 'Send button label'},
 } as const satisfies InteractivitySchema;
 
 export const FormScene = Interactive.withSchema({

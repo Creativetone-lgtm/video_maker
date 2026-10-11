@@ -1,155 +1,119 @@
+import {Audio} from '@remotion/media';
 import type React from 'react';
-import {
-	AbsoluteFill,
-	Interactive,
-	interpolate,
-	useCurrentFrame,
-	type InteractivitySchema,
-} from 'remotion';
-import {Background, Logo} from '../components';
-import {clamp, ease, fontFamily, theme} from '../theme';
+import {AbsoluteFill, Interactive, interpolate, staticFile, useCurrentFrame, useVideoConfig, type InteractivitySchema} from 'remotion';
+import {backOut, brand, clamp, expoOut, fontFamily, glass, progress} from '../theme';
+import {Background, Logo} from '../ui';
+import {ChatBubble} from './HookScene';
+import {FloatingChips} from './FloatingChips';
 
 type Props = {
 	readonly oldWay: string;
 	readonly line1: string;
 	readonly line2: string;
+	readonly line3: string;
 	readonly domain: string;
 	readonly ctaLabel: string;
 	readonly style?: React.CSSProperties;
 };
 
-const OutroSceneInner: React.FC<Props> = ({oldWay, line1, line2, domain, ctaLabel, style}) => {
+/** Frame (local) of the final music hit, where the logo lands. */
+const HIT = 90;
+
+const rise = (frame: number, at: number) => {
+	const p = progress(frame, at, at + 18, expoOut);
+	return {opacity: p, translate: `0px ${(1 - p) * 70}px`, filter: `blur(${(1 - p) * 12}px)`};
+};
+
+const OutroSceneInner: React.FC<Props> = ({oldWay, line1, line2, line3, domain, ctaLabel, style}) => {
 	const frame = useCurrentFrame();
-	const strike = interpolate(frame, [18, 34], [0, 1], {...clamp, easing: ease});
-	const oldOut = interpolate(frame, [44, 60], [0, 1], {...clamp, easing: ease});
+	const {fps} = useVideoConfig();
+	const bubbleOut = progress(frame, 30, 42);
+	const logo = interpolate(frame, [HIT, HIT + 18], [0, 1], {...clamp, easing: backOut});
+	const pulse = (frame % 40) / 40;
 
 	return (
-		<AbsoluteFill style={{fontFamily, alignItems: 'center', justifyContent: 'center', ...style}}>
+		<AbsoluteFill style={{fontFamily, ...style}}>
 			<Background />
+			<FloatingChips
+				chips={[
+					{label: 'Branding', x: 70, y: 1590, delay: HIT + 4},
+					{label: 'Meta Ads', x: 720, y: 1560, delay: HIT + 8},
+					{label: 'Content', x: 170, y: 1730, delay: HIT + 12, accent: true},
+					{label: 'Strategy', x: 620, y: 1710, delay: HIT + 16},
+				]}
+			/>
 
-			{/* The old way, crossed out */}
-			<div
-				style={{
-					position: 'absolute',
-					top: 420,
-					left: 0,
-					right: 0,
-					display: 'flex',
-					justifyContent: 'center',
-					opacity: interpolate(frame, [0, 10], [0, 1], clamp) * (1 - oldOut),
-					translate: `0px ${-oldOut * 120}px`,
-					scale: String(1 - oldOut * 0.15),
-				}}
-			>
-				<div style={{position: 'relative', fontSize: 96, fontWeight: 700, color: 'rgba(255,255,255,0.55)', letterSpacing: -2}}>
-					{oldWay}
-					<div
-						style={{
-							position: 'absolute',
-							left: -10,
-							top: '52%',
-							height: 10,
-							borderRadius: 5,
-							width: `calc(${strike * 100}% + 20px)`,
-							background: theme.accent,
-						}}
-					/>
+			<AbsoluteFill style={{opacity: 1 - bubbleOut, scale: String(1 - bubbleOut * 0.3), filter: `blur(${bubbleOut * 14}px)`}}>
+				<div style={{position: 'absolute', left: 0, right: 0, top: 560, textAlign: 'center', fontSize: 56, fontWeight: 700, color: brand.inkSoft, ...rise(frame, 0)}}>
+					No more
 				</div>
+				<ChatBubble text={oldWay} at={4} top={680} strikeAt={16} />
+			</AbsoluteFill>
+
+			<div style={{position: 'absolute', left: 0, right: 0, top: 470 - logo * 140, textAlign: 'center'}}>
+				<div style={{fontSize: 170, fontWeight: 800, letterSpacing: -7, color: brand.ink, lineHeight: 1, ...rise(frame, 38)}}>{line1}</div>
+				<div style={{marginTop: 26, fontSize: 84, fontWeight: 700, letterSpacing: -3, color: brand.ink, lineHeight: 1.05, ...rise(frame, 50)}}>{line2}</div>
+				<div style={{fontSize: 84, fontWeight: 800, letterSpacing: -3, color: brand.orange, lineHeight: 1.05, ...rise(frame, 58)}}>{line3}</div>
 			</div>
 
-			{/* The new way */}
 			<div
 				style={{
 					position: 'absolute',
-					top: 250,
 					left: 0,
 					right: 0,
-					textAlign: 'center',
-				}}
-			>
-				<div
-					style={{
-						fontSize: 150,
-						fontWeight: 800,
-						color: 'white',
-						letterSpacing: -6,
-						opacity: interpolate(frame, [52, 64], [0, 1], clamp),
-						translate: `0px ${interpolate(frame, [52, 72], [60, 0], {...clamp, easing: ease})}px`,
-					}}
-				>
-					{line1}
-				</div>
-				<div
-					style={{
-						marginTop: 10,
-						fontSize: 84,
-						fontWeight: 800,
-						letterSpacing: -3,
-						background: theme.gradient,
-						backgroundClip: 'text',
-						WebkitBackgroundClip: 'text',
-						color: 'transparent',
-						opacity: interpolate(frame, [64, 76], [0, 1], clamp),
-						translate: `0px ${interpolate(frame, [64, 84], [60, 0], {...clamp, easing: ease})}px`,
-					}}
-				>
-					{line2}
-				</div>
-			</div>
-
-			{/* End card */}
-			<div
-				style={{
-					position: 'absolute',
-					top: 720,
-					left: 0,
-					right: 0,
+					top: 960,
 					display: 'flex',
-					justifyContent: 'center',
+					flexDirection: 'column',
 					alignItems: 'center',
-					gap: 28,
-					opacity: interpolate(frame, [84, 98], [0, 1], clamp),
-					translate: `0px ${interpolate(frame, [84, 104], [50, 0], {...clamp, easing: ease})}px`,
+					gap: 50,
 				}}
 			>
-				<div
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: 24,
-						padding: '22px 36px 22px 24px',
-						borderRadius: 999,
-						backgroundColor: 'white',
-					}}
-				>
-					<Logo size={36} />
-					<div style={{width: 2, height: 40, backgroundColor: theme.line}} />
-					<div style={{fontSize: 34, fontWeight: 600, color: theme.inkMuted}}>{domain}</div>
+				<div style={{scale: String(logo), opacity: Math.min(1, logo * 1.5)}}>
+					<Logo width={680} />
 				</div>
 				<div
 					style={{
-						padding: '30px 44px',
+						...glass,
+						padding: '24px 50px',
 						borderRadius: 999,
-						background: theme.gradient,
+						fontSize: 46,
+						fontWeight: 600,
+						color: brand.ink,
+						...rise(frame, HIT + 8),
+					}}
+				>
+					{domain}
+				</div>
+				<div
+					style={{
+						padding: '30px 64px',
+						borderRadius: 999,
+						background: brand.button,
 						color: 'white',
-						fontSize: 36,
-						fontWeight: 800,
-						boxShadow: `0 0 0 ${interpolate(frame % 40, [0, 40], [0, 26])}px rgba(255,77,46,${interpolate(frame % 40, [0, 40], [0.35, 0])})`,
+						fontSize: 50,
+						fontWeight: 700,
+						boxShadow: `0 20px 44px rgba(255,84,8,0.4), inset 0 2px 2px rgba(255,255,255,0.4), 0 0 0 ${pulse * 30}px rgba(255,84,8,${0.35 * (1 - pulse)})`,
+						...rise(frame, HIT + 14),
 					}}
 				>
 					{ctaLabel} →
 				</div>
 			</div>
+
+			<Audio name="Bubble pop" src={staticFile('tap.wav')} from={4} premountFor={fps} />
+			<Audio name="Bubble away" src={staticFile('whoosh.wav')} from={28} premountFor={fps} volume={0.5} />
+			<Audio name="Logo hit" src={staticFile('success.wav')} from={HIT} premountFor={fps} volume={0.45} />
 		</AbsoluteFill>
 	);
 };
 
 const schema = {
-	oldWay: {type: 'text-content', default: '“Hi, can you help me?”', description: 'Old way (crossed out)'},
+	oldWay: {type: 'text-content', default: 'Hi, can you help me?', description: 'Old way (crossed out)'},
 	line1: {type: 'text-content', default: 'Just book.', description: 'Line 1'},
-	line2: {type: 'text-content', default: 'We’ll be ready for the call.', description: 'Line 2'},
+	line2: {type: 'text-content', default: 'We’ll be ready', description: 'Line 2'},
+	line3: {type: 'text-content', default: 'for the call.', description: 'Line 3 (orange)'},
 	domain: {type: 'text-content', default: 'creativetoneagency.com', description: 'Domain'},
-	ctaLabel: {type: 'text-content', default: 'Book Strategy', description: 'CTA label'},
+	ctaLabel: {type: 'text-content', default: 'Book a Strategy Call', description: 'CTA label'},
 } as const satisfies InteractivitySchema;
 
 export const OutroScene = Interactive.withSchema({

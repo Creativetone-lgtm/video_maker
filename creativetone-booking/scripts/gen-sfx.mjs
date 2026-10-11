@@ -36,16 +36,6 @@ const rand = () => {
 	return seed / 2147483647 - 0.5;
 };
 
-const addClick = (buf, at, gain = 0.5, tone = 1800) => {
-	const start = Math.round(at * SR);
-	const len = Math.round(0.035 * SR);
-	for (let i = 0; i < len && start + i < buf.length; i++) {
-		const t = i / SR;
-		const env = Math.exp(-t * 160);
-		buf[start + i] += (rand() * 0.8 + Math.sin(2 * Math.PI * tone * t) * 0.4) * env * gain;
-	}
-};
-
 const addTone = (buf, at, freq, dur, gain) => {
 	const start = Math.round(at * SR);
 	const len = Math.round(dur * SR);
@@ -61,42 +51,68 @@ const addTone = (buf, at, freq, dur, gain) => {
 	}
 };
 
-// Mouse click
-const click = buffer(0.12);
-addClick(click, 0, 0.7, 2400);
-addClick(click, 0.045, 0.35, 1600);
-writeWav('click.wav', click);
+// Soft tap (iOS-style touch)
+const tap = buffer(0.1);
+{
+	const len = Math.round(0.05 * SR);
+	for (let i = 0; i < len; i++) {
+		const t = i / SR;
+		tap[i] += (Math.sin(2 * Math.PI * 520 * t) * 0.6 + rand() * 0.25) * Math.exp(-t * 110) * 0.7;
+	}
+}
+writeWav('tap.wav', tap);
 
-// Typing: one key every 2 frames at 30fps (66.7ms), 2 seconds, loopable
-const typing = buffer(2);
-for (let k = 0; k < 30; k++) {
-	addClick(typing, k / 15 + (rand() * 0.006), 0.28 + rand() * 0.1, 1400 + rand() * 800);
+// iOS keyboard "tock": one key every 2 frames at 30fps (66.7ms), 3 seconds, loopable
+const keyTock = (buf, at, gain, f) => {
+	const s = Math.round(at * SR);
+	const len = Math.round(0.03 * SR);
+	for (let i = 0; i < len && s + i < buf.length; i++) {
+		const t = i / SR;
+		buf[s + i] += (Math.sin(2 * Math.PI * f * t) * 0.7 + rand() * 0.35) * Math.exp(-t * 190) * gain;
+	}
+};
+const typing = buffer(3);
+for (let k = 0; k < 45; k++) {
+	keyTock(typing, k / 15, 0.32 + rand() * 0.08, 1150 + rand() * 250);
 }
 writeWav('typing.wav', typing);
 
 // Whoosh: filtered noise swell
-const whoosh = buffer(0.7);
+const whoosh = buffer(0.6);
 let lp = 0;
 for (let i = 0; i < whoosh.length; i++) {
 	const t = i / whoosh.length;
 	const env = Math.sin(Math.PI * t) ** 2;
-	const a = 0.02 + 0.25 * t;
+	const a = 0.02 + 0.3 * t;
 	lp += a * (rand() - lp);
-	whoosh[i] = lp * env * 2.2;
+	whoosh[i] = lp * env * 2;
 }
 writeWav('whoosh.wav', whoosh);
 
+// Sent: rising swoosh + bright blip
+const sent = buffer(0.9);
+{
+	let l = 0;
+	for (let i = 0; i < Math.round(0.45 * SR); i++) {
+		const t = i / (0.45 * SR);
+		l += (0.03 + 0.4 * t) * (rand() - l);
+		sent[i] += l * Math.sin(Math.PI * t) * 1.6;
+	}
+	addTone(sent, 0.38, 1760, 0.4, 0.22);
+}
+writeWav('sent.wav', sent);
+
 // Success chime (two rising notes)
 const chime = buffer(1.4);
-addTone(chime, 0, 880, 0.9, 0.35);
-addTone(chime, 0.12, 1318.5, 1.2, 0.35);
+addTone(chime, 0, 1046.5, 0.9, 0.3);
+addTone(chime, 0.1, 1568, 1.2, 0.3);
 writeWav('success.wav', chime);
 
-// Ringtone: marimba-like phrase, repeated twice (~4.4s)
+// Ringtone: marimba-like phrase, repeated (~4.4s)
 const ring = buffer(4.6);
 const phrase = [1318.5, 1046.5, 1318.5, 1568, 1318.5, 1046.5];
 for (let r = 0; r < 2; r++) {
-	phrase.forEach((f, n) => addTone(ring, r * 2.2 + n * 0.16, f, 0.5, 0.32));
+	phrase.forEach((f, n) => addTone(ring, r * 2.2 + n * 0.16, f, 0.5, 0.5));
 }
 writeWav('ring.wav', ring);
 

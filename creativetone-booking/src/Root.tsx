@@ -1,82 +1,86 @@
 import {Composition, Folder} from 'remotion';
-import {BookingJourney} from './BookingJourney';
+import {BookingReel} from './BookingReel';
+import {BrowseScene} from './scenes/BrowseScene';
 import {CallScene} from './scenes/CallScene';
-import {DomainScene} from './scenes/DomainScene';
 import {FormScene} from './scenes/FormScene';
-import {HomeScene} from './scenes/HomeScene';
+import {HookScene} from './scenes/HookScene';
 import {OutroScene} from './scenes/OutroScene';
+import {SafariScene} from './scenes/SafariScene';
 import {SentScene} from './scenes/SentScene';
 
 export const RemotionRoot: React.FC = () => {
 	return (
 		<>
-			<Composition
-				id="BookingJourney"
-				component={BookingJourney}
-				durationInFrames={840}
-				fps={30}
-				width={1920}
-				height={1080}
-			/>
+			<Composition id="BookingReel" component={BookingReel} durationInFrames={1020} fps={30} width={1080} height={1920} />
 			<Folder name="Scenes">
 				<Composition
-					id="DomainScene"
-					component={DomainScene}
-					durationInFrames={135}
+					id="HookScene"
+					component={HookScene}
+					durationInFrames={105}
 					fps={30}
-					width={1920}
-					height={1080}
-					defaultProps={{domain: 'creativetoneagency.com', stepLabel: 'Type our domain'}}
+					width={1080}
+					height={1920}
+					defaultProps={{message1: 'Hi, can you help me?', message2: 'Hello??', headline: 'There’s a faster way.', highlight: 'faster'}}
 				/>
 				<Composition
-					id="HomeScene"
-					component={HomeScene}
-					durationInFrames={120}
+					id="SafariScene"
+					component={SafariScene}
+					durationInFrames={150}
 					fps={30}
-					width={1920}
-					height={1080}
-					defaultProps={{headline: 'Creative that\ngrows brands.', ctaLabel: 'Book Strategy', stepLabel: 'Click “Book Strategy”'}}
+					width={1080}
+					height={1920}
+					defaultProps={{domain: 'creativetoneagency.com', caption: 'Type our website'}}
+				/>
+				<Composition
+					id="BrowseScene"
+					component={BrowseScene}
+					durationInFrames={150}
+					fps={30}
+					width={1080}
+					height={1920}
+					defaultProps={{tapCaption: 'Tap “Book a Strategy Call”', scrollCaption: 'Straight to the form'}}
 				/>
 				<Composition
 					id="FormScene"
 					component={FormScene}
-					durationInFrames={270}
+					durationInFrames={240}
 					fps={30}
-					width={1920}
-					height={1080}
-					defaultProps={{fullName: 'Alex Morgan', email: 'alex@brightstudio.co', phone: '+1 415 555 0142', industry: 'E-commerce'}}
+					width={1080}
+					height={1920}
+					defaultProps={{industry: 'Healthcare & Doctors', buttonLabel: 'Start a Project'}}
 				/>
 				<Composition
 					id="SentScene"
 					component={SentScene}
 					durationInFrames={90}
 					fps={30}
-					width={1920}
-					height={1080}
-					defaultProps={{title: 'Request sent!', subtitle: 'Sit tight, Alex — we’re getting ready for your call.'}}
+					width={1080}
+					height={1920}
+					defaultProps={{title: 'Request sent!', subtitle: 'We’ll be ready for your call.', industry: 'Healthcare & Doctors', caption: 'Sent. That’s it.'}}
 				/>
 				<Composition
 					id="CallScene"
 					component={CallScene}
 					durationInFrames={150}
 					fps={30}
-					width={1920}
-					height={1080}
-					defaultProps={{callerName: 'Creativetone', headline: 'Creativetone\nis calling.'}}
+					width={1080}
+					height={1920}
+					defaultProps={{callerName: 'CreativeTone', subtitle: 'Strategy call', caption: 'Then… we call you.'}}
 				/>
 				<Composition
 					id="OutroScene"
 					component={OutroScene}
-					durationInFrames={150}
+					durationInFrames={165}
 					fps={30}
-					width={1920}
-					height={1080}
+					width={1080}
+					height={1920}
 					defaultProps={{
-						oldWay: '“Hi, can you help me?”',
+						oldWay: 'Hi, can you help me?',
 						line1: 'Just book.',
-						line2: 'We’ll be ready for the call.',
+						line2: 'We’ll be ready',
+						line3: 'for the call.',
 						domain: 'creativetoneagency.com',
-						ctaLabel: 'Book Strategy',
+						ctaLabel: 'Book a Strategy Call',
 					}}
 				/>
 			</Folder>
