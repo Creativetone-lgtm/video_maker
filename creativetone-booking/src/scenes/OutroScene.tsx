@@ -1,7 +1,7 @@
 import {Audio} from '@remotion/media';
 import type React from 'react';
 import {AbsoluteFill, Interactive, interpolate, staticFile, useCurrentFrame, useVideoConfig, type InteractivitySchema} from 'remotion';
-import {backOut, brand, clamp, expoOut, fontFamily, glass, progress} from '../theme';
+import {backOut, brand, clamp, expoOut, fontFamily, progress} from '../theme';
 import {Background, Logo} from '../ui';
 import {ChatBubble} from './HookScene';
 import {FloatingChips} from './FloatingChips';
@@ -11,7 +11,6 @@ type Props = {
 	readonly line1: string;
 	readonly line2: string;
 	readonly line3: string;
-	readonly domain: string;
 	readonly ctaLabel: string;
 	readonly style?: React.CSSProperties;
 };
@@ -24,7 +23,7 @@ const rise = (frame: number, at: number) => {
 	return {opacity: p, translate: `0px ${(1 - p) * 70}px`, filter: `blur(${(1 - p) * 12}px)`};
 };
 
-const OutroSceneInner: React.FC<Props> = ({oldWay, line1, line2, line3, domain, ctaLabel, style}) => {
+const OutroSceneInner: React.FC<Props> = ({oldWay, line1, line2, line3, ctaLabel, style}) => {
 	const frame = useCurrentFrame();
 	const {fps} = useVideoConfig();
 	const bubbleOut = progress(frame, 30, 42);
@@ -36,10 +35,10 @@ const OutroSceneInner: React.FC<Props> = ({oldWay, line1, line2, line3, domain, 
 			<Background />
 			<FloatingChips
 				chips={[
-					{label: 'Branding', x: 70, y: 1590, delay: HIT + 4},
-					{label: 'Meta Ads', x: 720, y: 1560, delay: HIT + 8},
-					{label: 'Content', x: 170, y: 1730, delay: HIT + 12, accent: true},
-					{label: 'Strategy', x: 620, y: 1710, delay: HIT + 16},
+					{label: 'Branding', x: 70, y: 1360, delay: HIT + 4},
+					{label: 'Meta Ads', x: 720, y: 1340, delay: HIT + 8},
+					{label: 'Content', x: 170, y: 1490, delay: HIT + 12, accent: true},
+					{label: 'Strategy', x: 620, y: 1475, delay: HIT + 16},
 				]}
 			/>
 
@@ -61,28 +60,15 @@ const OutroSceneInner: React.FC<Props> = ({oldWay, line1, line2, line3, domain, 
 					position: 'absolute',
 					left: 0,
 					right: 0,
-					top: 960,
+					top: 960 - (680 * 408) / 1332 / 2,
 					display: 'flex',
 					flexDirection: 'column',
 					alignItems: 'center',
-					gap: 50,
+					gap: 60,
 				}}
 			>
 				<div style={{scale: String(logo), opacity: Math.min(1, logo * 1.5)}}>
 					<Logo width={680} />
-				</div>
-				<div
-					style={{
-						...glass,
-						padding: '24px 50px',
-						borderRadius: 999,
-						fontSize: 46,
-						fontWeight: 600,
-						color: brand.ink,
-						...rise(frame, HIT + 8),
-					}}
-				>
-					{domain}
 				</div>
 				<div
 					style={{
@@ -112,7 +98,6 @@ const schema = {
 	line1: {type: 'text-content', default: 'Just book.', description: 'Line 1'},
 	line2: {type: 'text-content', default: 'We’ll be ready', description: 'Line 2'},
 	line3: {type: 'text-content', default: 'for the call.', description: 'Line 3 (orange)'},
-	domain: {type: 'text-content', default: 'creativetoneagency.com', description: 'Domain'},
 	ctaLabel: {type: 'text-content', default: 'Book a Strategy Call', description: 'CTA label'},
 } as const satisfies InteractivitySchema;
 

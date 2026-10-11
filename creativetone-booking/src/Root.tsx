@@ -79,7 +79,6 @@ export const RemotionRoot: React.FC = () => {
 						line1: 'Just book.',
 						line2: 'We’ll be ready',
 						line3: 'for the call.',
-						domain: 'creativetoneagency.com',
 						ctaLabel: 'Book a Strategy Call',
 					}}
 				/>
