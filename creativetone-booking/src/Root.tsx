@@ -13,13 +13,11 @@ export const RemotionRoot: React.FC = () => {
 	return (
 		<>
 			<Composition id="BookingReel" component={BookingReel} durationInFrames={1020} fps={30} width={1080} height={1920} />
-			<Still
-				id="ReelCover"
-				component={ReelCover}
-				width={1080}
-				height={1920}
-				defaultProps={{line1: 'Just book.', line2: 'We’ll call you.'}}
-			/>
+			<Folder name="Covers">
+				<Still id="CoverPhone" component={ReelCover} width={1080} height={1920} defaultProps={{variant: 'phone' as const, line1: 'Just book.', line2: 'We’ll call you.'}} />
+				<Still id="CoverOrange" component={ReelCover} width={1080} height={1920} defaultProps={{variant: 'orange' as const, line1: 'Just book.', line2: 'We’ll call you.'}} />
+				<Still id="CoverDark" component={ReelCover} width={1080} height={1920} defaultProps={{variant: 'dark' as const, line1: 'Just book.', line2: 'We’ll call you.'}} />
+			</Folder>
 			<Folder name="Scenes">
 				<Composition
 					id="HookScene"

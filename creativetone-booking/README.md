@@ -26,10 +26,12 @@ node scripts/gen-sfx.mjs                      # regenerate the sound effects
 Each scene is registered on its own under **Scenes** in Studio, with captions, headlines, industry and CTA editable as props.
 `public/site/` holds the full-page screenshot split into 3000px chunks; `public/logo-*.png` were extracted from it.
 
-## Reel cover
+## Reel covers
+
+Three 1080×1920 options (all key content inside the 4:5 profile-grid band):
 
 ```bash
-npx remotion still ReelCover out/creativetone-reel-cover.png
+npx remotion still CoverPhone out/cover-phone.png    # real homepage on an iPhone
+npx remotion still CoverOrange out/cover-orange.png  # bold brand orange
+npx remotion still CoverDark out/cover-dark.png      # dark with glass call card
 ```
-
-1080×1920, minimal: call icon, headline and logo, all centred inside the 4:5 band Instagram shows in the profile grid.
