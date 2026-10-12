@@ -18,7 +18,7 @@ export const RemotionRoot: React.FC = () => {
 				component={ReelCover}
 				width={1080}
 				height={1920}
-				defaultProps={{oldWay: 'Hi, can you help me?', line1: 'Just book.', line2: 'We’ll call you.', callerName: 'CreativeTone'}}
+				defaultProps={{line1: 'Just book.', line2: 'We’ll call you.'}}
 			/>
 			<Folder name="Scenes">
 				<Composition

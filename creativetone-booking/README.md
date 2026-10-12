@@ -32,4 +32,4 @@ Each scene is registered on its own under **Scenes** in Studio, with captions, h
 npx remotion still ReelCover out/creativetone-reel-cover.png
 ```
 
-1080×1920; the logo, headline and caller name stay inside the 4:5 band Instagram shows in the profile grid.
+1080×1920, minimal: call icon, headline and logo, all centred inside the 4:5 band Instagram shows in the profile grid.
