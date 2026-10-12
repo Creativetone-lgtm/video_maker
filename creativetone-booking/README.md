@@ -25,3 +25,11 @@ node scripts/gen-sfx.mjs                      # regenerate the sound effects
 
 Each scene is registered on its own under **Scenes** in Studio, with captions, headlines, industry and CTA editable as props.
 `public/site/` holds the full-page screenshot split into 3000px chunks; `public/logo-*.png` were extracted from it.
+
+## Reel cover
+
+```bash
+npx remotion still ReelCover out/creativetone-reel-cover.png
+```
+
+1080×1920; the logo, headline and caller name stay inside the 4:5 band Instagram shows in the profile grid.

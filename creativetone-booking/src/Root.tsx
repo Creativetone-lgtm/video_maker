@@ -1,5 +1,6 @@
-import {Composition, Folder} from 'remotion';
+import {Composition, Folder, Still} from 'remotion';
 import {BookingReel} from './BookingReel';
+import {ReelCover} from './ReelCover';
 import {BrowseScene} from './scenes/BrowseScene';
 import {CallScene} from './scenes/CallScene';
 import {FormScene} from './scenes/FormScene';
@@ -12,6 +13,13 @@ export const RemotionRoot: React.FC = () => {
 	return (
 		<>
 			<Composition id="BookingReel" component={BookingReel} durationInFrames={1020} fps={30} width={1080} height={1920} />
+			<Still
+				id="ReelCover"
+				component={ReelCover}
+				width={1080}
+				height={1920}
+				defaultProps={{oldWay: 'Hi, can you help me?', line1: 'Just book.', line2: 'We’ll call you.', callerName: 'CreativeTone'}}
+			/>
 			<Folder name="Scenes">
 				<Composition
 					id="HookScene"
