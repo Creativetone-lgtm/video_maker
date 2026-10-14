@@ -19,7 +19,7 @@ import {
   pop,
   progress,
 } from "../theme";
-import { Dish, KineticText, VWatermark } from "../ui";
+import { Dish, KineticText } from "../ui";
 
 type Props = {
   readonly deli: string;
@@ -42,7 +42,6 @@ const LogoSceneInner: React.FC<Props> = ({ deli, tagline, style }) => {
     <AbsoluteFill
       style={{ fontFamily, backgroundColor: brand.greenBg, ...style }}
     >
-      <VWatermark tone="white" y={980} width={1250} opacity={0.06} />
       {/* Dishes framing the corners */}
       <Dish
         name="hummus"

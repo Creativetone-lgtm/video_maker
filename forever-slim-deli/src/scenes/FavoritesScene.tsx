@@ -11,7 +11,7 @@ import {
   type InteractivitySchema,
 } from "remotion";
 import { backOut, brand, clamp, fontFamily, pop } from "../theme";
-import { Dish, type DishName, KineticText, Pill, VWatermark } from "../ui";
+import { Dish, type DishName, KineticText, Pill } from "../ui";
 
 type Props = {
   readonly line1: string;
@@ -64,7 +64,6 @@ const FavoritesSceneInner: React.FC<Props> = ({
     <AbsoluteFill
       style={{ fontFamily, backgroundColor: brand.cream, ...style }}
     >
-      <VWatermark tone="color" y={1000} width={1150} opacity={0.07} />
       <KineticText
         at={2}
         top={130}

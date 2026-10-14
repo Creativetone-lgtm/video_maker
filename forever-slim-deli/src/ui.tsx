@@ -97,7 +97,8 @@ export const KineticText: React.FC<{
                     : -line.size * 0.06,
               padding: line.block
                 ? `${line.size * 0.04}px ${line.size * 0.26}px ${line.size * 0.1}px`
-                : `0 0 ${line.size * 0.08}px`,
+                : `${line.size * 0.06}px 0 ${line.size * 0.24}px`,
+              marginBottom: line.block ? 0 : -line.size * 0.18,
               overflow: "hidden",
             }}
           >
@@ -140,7 +141,8 @@ export const KineticText: React.FC<{
                       letterSpacing: -line.size * 0.035,
                       lineHeight: 1,
                       color: line.color,
-                      translate: `0px ${(1 - p) * 110 - out * 110}%`,
+                      translate: `0px ${(1 - p) * 170 - out * 170}%`,
+                      opacity: p > 0 ? 1 : 0,
                       rotate: `${(1 - p) * 6}deg`,
                     }}
                   >
