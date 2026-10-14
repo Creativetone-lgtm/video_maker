@@ -132,4 +132,16 @@ for (let k = 0; k < 10; k++) {
 }
 writeWav('alarm.wav', alarm);
 
+// Drip: a soft liquid "bloop" (rising sine with fast decay)
+const drip = buffer(0.25);
+{
+	let ph = 0;
+	for (let i = 0; i < drip.length; i++) {
+		const t = i / SR;
+		ph += (500 + 1400 * Math.min(1, t / 0.03)) / SR;
+		drip[i] = Math.sin(2 * Math.PI * ph) * Math.exp(-t * 28) * 0.5;
+	}
+}
+writeWav('drip.wav', drip);
+
 console.log('SFX written to public/sfx');
