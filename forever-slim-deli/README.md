@@ -7,7 +7,7 @@ brand colours (orange #E85D06, green #5D8939) and Neue Haas Grotesk Display.
 | --- | --- | --- |
 | 0–3s | Hungry? In a hurry? | Racing alarm clock, food icons pop in |
 | 3–7s | Mediterranean Favorites! | Hummus, mtabal, hindbeh, grape leaves, loubieh drop in with labels |
-| 7–11s | Organic Ingredients. Olive Oil Goodness. | Ingredients fly in, olive oil pours and drizzles over hummus |
+| 7–11s | Organic Ingredients. Olive Oil Goodness. | Ingredients fly in, olive oil drops onto hindbeh |
 | 11–16s | Pick it. Pack it. Go! | Bowls picked, lidded, dropped into a branded kraft bag that speeds off |
 | 16–20s | FOREVER SLIM DELI — Fresh. Healthy. On the Go. | Logo lockup |
 

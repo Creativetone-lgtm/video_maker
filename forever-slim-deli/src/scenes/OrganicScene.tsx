@@ -132,7 +132,7 @@ const OrganicSceneInner: React.FC<Props> = ({ line1, line2, style }) => {
       />
 
       <Dish
-        name="hummus"
+        name="hindbeh"
         x={BOWL.x}
         y={BOWL.y}
         size={BOWL.size}
