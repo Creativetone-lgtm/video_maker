@@ -18,7 +18,7 @@ export const RemotionRoot: React.FC = () => (
 				fps={30}
 				width={1080}
 				height={1920}
-				defaultProps={{line1: 'Mediterranean', line2: 'Favorites!'}}
+				defaultProps={{line1: 'Mediterranean', line2: 'Favorites!', more: 'and more'}}
 			/>
 			<Composition
 				id="OrganicScene"

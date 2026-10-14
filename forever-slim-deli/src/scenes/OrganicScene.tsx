@@ -3,7 +3,7 @@ import type React from 'react';
 import {AbsoluteFill, Interactive, interpolate, staticFile, useCurrentFrame, useVideoConfig, type InteractivitySchema} from 'remotion';
 import {Chickpea, Cucumber, Garlic, Lemon, Mint, Olive, Parsley, Tomato} from '../icons';
 import {backOut, brand, clamp, expoOut, fontFamily, inOut, progress} from '../theme';
-import {Blob, Dish, PopWords} from '../ui';
+import {Dish, KineticText} from '../ui';
 
 type Props = {
 	readonly line1: string;
@@ -11,20 +11,20 @@ type Props = {
 	readonly style?: React.CSSProperties;
 };
 
-const BOWL = {x: 540, y: 1150, size: 640};
-const SPOUT = {x: 620, y: 820};
+const BOWL = {x: 540, y: 1230, size: 640};
+const SPOUT = {x: 630, y: 880};
 
 const T = {pourStart: 78, pourEnd: 112, oilTitle: 64};
 
 const INGREDIENTS = [
-	{Icon: Tomato, angle: -160, delay: 8},
-	{Icon: Lemon, angle: -125, delay: 13},
-	{Icon: Parsley, angle: -45, delay: 18},
-	{Icon: Garlic, angle: -10, delay: 23},
-	{Icon: Chickpea, angle: 25, delay: 28},
-	{Icon: Olive, angle: 70, delay: 33},
-	{Icon: Cucumber, angle: 115, delay: 38},
-	{Icon: Mint, angle: 160, delay: 43},
+	{Icon: Tomato, angle: -165, delay: 8},
+	{Icon: Lemon, angle: -130, delay: 13},
+	{Icon: Parsley, angle: 0, delay: 18},
+	{Icon: Garlic, angle: 35, delay: 23},
+	{Icon: Chickpea, angle: 72, delay: 28},
+	{Icon: Olive, angle: 108, delay: 33},
+	{Icon: Cucumber, angle: 145, delay: 38},
+	{Icon: Mint, angle: 180, delay: 43},
 ];
 
 /** Olive oil bottle, drawn with its spout at the local origin so it can tilt around it. */
@@ -68,10 +68,15 @@ const OrganicSceneInner: React.FC<Props> = ({line1, line2, style}) => {
 	const drizzle = progress(frame, T.pourStart + 6, T.pourEnd + 8, inOut);
 
 	return (
-		<AbsoluteFill style={{fontFamily, background: `linear-gradient(180deg, ${brand.greenLight} 0%, #F7FAF0 100%)`, ...style}}>
-			<Blob x={540} y={1150} size={1300} color="rgba(232,180,37,0.25)" />
-
-			<PopWords text={line1} at={2} top={170} size={118} color={brand.green} stagger={6} />
+		<AbsoluteFill style={{fontFamily, backgroundColor: brand.greenLight, ...style}}>
+			<KineticText
+				at={2}
+				top={150}
+				lines={[
+					{text: line1, color: brand.green, size: 100},
+					{text: line2, color: 'white', size: 100, block: brand.orange, at: T.oilTitle},
+				]}
+			/>
 
 			<Dish name="hummus" x={BOWL.x} y={BOWL.y} size={BOWL.size} style={{scale: String(bowlIn), rotate: `${frame * 0.2}deg`}} />
 
@@ -132,7 +137,7 @@ const OrganicSceneInner: React.FC<Props> = ({line1, line2, style}) => {
 			{INGREDIENTS.map(({Icon, angle, delay}, i) => {
 				const p = progress(frame, delay, delay + 22, expoOut);
 				const a = ((angle + frame * 0.15) * Math.PI) / 180;
-				const dist = 420 + (1 - p) * 1100;
+				const dist = 410 + (1 - p) * 1100;
 				return (
 					<div
 						key={i}
@@ -149,8 +154,6 @@ const OrganicSceneInner: React.FC<Props> = ({line1, line2, style}) => {
 					</div>
 				);
 			})}
-
-			<PopWords text={line2} at={T.oilTitle} top={1640} size={118} color={brand.orange} stagger={6} />
 
 			<Audio name="Ingredients whoosh" src={staticFile('sfx/whoosh.wav')} from={6} premountFor={fps} volume={0.7} />
 			<Audio name="Ingredients whoosh 2" src={staticFile('sfx/whoosh.wav')} from={26} premountFor={fps} volume={0.5} />

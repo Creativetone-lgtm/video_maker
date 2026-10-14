@@ -119,4 +119,16 @@ for (const [f, at, g] of [
 }
 writeWav('ding.wav', ding);
 
+// Alarm bell: fast-striking metallic ring, ~1.6s
+const alarm = buffer(1.6);
+for (let k = 0; k < 26; k++) {
+	const s0 = Math.round(k * 0.06 * SR);
+	for (let i = 0; s0 + i < alarm.length && i < 0.12 * SR; i++) {
+		const t = i / SR;
+		const v = (Math.sin(2 * Math.PI * 2350 * t) * 0.5 + Math.sin(2 * Math.PI * 3720 * t) * 0.3 + Math.sin(2 * Math.PI * 5300 * t) * 0.15) * Math.exp(-t * 40);
+		alarm[s0 + i] += v * 0.32 * Math.min(1, (1.6 - k * 0.06) / 0.3);
+	}
+}
+writeWav('alarm.wav', alarm);
+
 console.log('SFX written to public/sfx');

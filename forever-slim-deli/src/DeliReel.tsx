@@ -22,7 +22,7 @@ export const DeliReel: React.FC = () => {
 				</TransitionSeries.Sequence>
 				<TransitionSeries.Transition presentation={slide({direction: 'from-bottom'})} timing={springTiming({config: {damping: 200}, durationInFrames: 15})} />
 				<TransitionSeries.Sequence name="Mediterranean Favorites" durationInFrames={135} premountFor={fps}>
-					<FavoritesScene line1="Mediterranean" line2="Favorites!" />
+					<FavoritesScene line1="Mediterranean" line2="Favorites!" more="and more" />
 				</TransitionSeries.Sequence>
 				<TransitionSeries.Transition presentation={fade()} timing={linearTiming({durationInFrames: 15})} />
 				<TransitionSeries.Sequence name="Organic & olive oil" durationInFrames={135} premountFor={fps}>

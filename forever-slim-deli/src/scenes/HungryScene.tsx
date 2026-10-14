@@ -1,9 +1,9 @@
 import {Audio} from '@remotion/media';
 import type React from 'react';
-import {AbsoluteFill, Interactive, interpolate, staticFile, useCurrentFrame, useVideoConfig, type InteractivitySchema} from 'remotion';
-import {Chickpea, Cutlery, Lemon, Mint, Olive, Tomato} from '../icons';
+import {AbsoluteFill, Img, Interactive, interpolate, staticFile, useCurrentFrame, useVideoConfig, type InteractivitySchema} from 'remotion';
+import {Chickpea, Lemon, Mint, Olive, Pomegranate, Tomato} from '../icons';
 import {backOut, brand, clamp, fontFamily, pop} from '../theme';
-import {Blob, PopWords} from '../ui';
+import {KineticText} from '../ui';
 
 type Props = {
 	readonly line1: string;
@@ -11,78 +11,90 @@ type Props = {
 	readonly style?: React.CSSProperties;
 };
 
-const CLOCK = {x: 540, y: 1140, r: 300};
+const CLOCK = {x: 540, y: 1170, w: 660};
+const RING_AT = 20;
 
 const ICONS = [
-	{Icon: Tomato, angle: -150, delay: 22},
-	{Icon: Lemon, angle: -90, delay: 28},
-	{Icon: Olive, angle: -30, delay: 34},
-	{Icon: Mint, angle: 30, delay: 40},
-	{Icon: Chickpea, angle: 90, delay: 46},
-	{Icon: Cutlery, angle: 150, delay: 52},
+	{Icon: Tomato, angle: -155, delay: 26},
+	{Icon: Lemon, angle: -25, delay: 30},
+	{Icon: Olive, angle: 15, delay: 34},
+	{Icon: Mint, angle: 165, delay: 38},
+	{Icon: Chickpea, angle: 125, delay: 42},
+	{Icon: Pomegranate, angle: 55, delay: 46},
 ];
 
 const HungrySceneInner: React.FC<Props> = ({line1, line2, style}) => {
 	const frame = useCurrentFrame();
 	const {fps} = useVideoConfig();
-	const clockIn = interpolate(frame, [0, 18], [0, 1], {...clamp, easing: backOut});
-	const shake = Math.sin(frame * 1.7) * 2.5 * Math.min(1, frame / 20);
-	// Hands race faster and faster
-	const minute = frame * frame * 0.35;
-	const hour = minute / 12;
+	const spin = interpolate(frame, [0, RING_AT], [0, 1], {...clamp, easing: backOut});
+	const ringing = frame >= RING_AT ? 1 : 0;
+	const shake = ringing * Math.sin(frame * 2.6) * 5;
+	const jitter = ringing * Math.sin(frame * 3.3) * 6;
+	const buzz = ringing * (Math.floor(frame / 2) % 2);
 
 	return (
-		<AbsoluteFill style={{fontFamily, background: `linear-gradient(180deg, ${brand.green} 0%, ${brand.greenDark} 100%)`, ...style}}>
-			<Blob x={180} y={300} size={900} color="rgba(255,255,255,0.18)" />
-			<Blob x={900} y={1700} size={1000} color="rgba(232,93,6,0.35)" phase={40} />
+		<AbsoluteFill style={{fontFamily, backgroundColor: brand.green, ...style}}>
+			<KineticText
+				at={4}
+				top={210}
+				lines={[
+					{text: line1, color: 'white', size: 190},
+					{text: line2, color: 'white', size: 112, block: brand.orange},
+				]}
+			/>
 
-			<PopWords text={line1} at={4} top={260} size={190} color="white" />
-			<PopWords text={line2} at={20} top={470} size={130} color={brand.orangeLight} stagger={5} />
-
-			{/* Clock */}
+			{/* Alarm clock: spins in, then rings */}
 			<div
 				style={{
 					position: 'absolute',
-					left: CLOCK.x - CLOCK.r,
-					top: CLOCK.y - CLOCK.r,
-					width: CLOCK.r * 2,
-					height: CLOCK.r * 2,
-					scale: String(clockIn),
-					rotate: `${shake}deg`,
+					left: CLOCK.x - CLOCK.w / 2 + jitter,
+					top: CLOCK.y - (CLOCK.w * 1254) / 1170 / 2,
+					width: CLOCK.w,
+					scale: String(spin),
+					rotate: `${(1 - spin) * -360 + shake}deg`,
 				}}
 			>
-				<svg width={CLOCK.r * 2} height={CLOCK.r * 2} viewBox="0 0 200 200">
-					<circle cx="100" cy="100" r="96" fill={brand.orange} />
-					<circle cx="100" cy="100" r="84" fill="white" />
-					{new Array(12).fill(true).map((_, i) => (
-						<rect key={i} x="98" y="22" width="4" height={i % 3 === 0 ? 14 : 8} rx="2" fill={brand.greenDark} transform={`rotate(${i * 30} 100 100)`} />
-					))}
-					<rect x="96" y="52" width="8" height="52" rx="4" fill={brand.greenDark} transform={`rotate(${hour} 100 100)`} />
-					<rect x="98" y="30" width="4" height="74" rx="2" fill={brand.orange} transform={`rotate(${minute} 100 100)`} />
-					<circle cx="100" cy="100" r="8" fill={brand.greenDark} />
-				</svg>
-				{/* bells */}
-				<div style={{position: 'absolute', left: 40, top: -40, width: 120, height: 70, borderRadius: '70px 70px 10px 10px', backgroundColor: brand.orange, rotate: '-30deg'}} />
-				<div style={{position: 'absolute', right: 40, top: -40, width: 120, height: 70, borderRadius: '70px 70px 10px 10px', backgroundColor: brand.orange, rotate: '30deg'}} />
+				<Img src={staticFile('clock.png')} style={{width: CLOCK.w, filter: 'drop-shadow(0 30px 30px rgba(20,40,10,0.35))'}} />
 			</div>
+			{/* Ringing marks by the bells */}
+			{[
+				[-1, 0],
+				[-1, 1],
+				[1, 0],
+				[1, 1],
+			].map(([side, k]) => (
+				<div
+					key={`${side}-${k}`}
+					style={{
+						position: 'absolute',
+						left: CLOCK.x + side * (CLOCK.w / 2 + 10 + k * 34) - 9,
+						top: CLOCK.y - 340 + k * 50,
+						width: 18,
+						height: 70,
+						borderRadius: 9,
+						backgroundColor: 'white',
+						rotate: `${side * (40 + k * 15)}deg`,
+						opacity: buzz,
+					}}
+				/>
+			))}
 
 			{/* Food icons pop around the clock */}
 			{ICONS.map(({Icon, angle, delay}, i) => {
 				const p = pop(frame, delay, 14);
 				const rad = (angle * Math.PI) / 180;
-				const dist = (CLOCK.r + 150) * Math.min(1, p);
+				const dist = 470 * Math.min(1, p);
 				return (
 					<div
 						key={i}
 						style={{
 							position: 'absolute',
-							left: CLOCK.x + Math.cos(rad) * dist - 75,
-							top: CLOCK.y + Math.sin(rad) * dist - 75 + Math.sin((frame + i * 10) / 8) * 10,
-							width: 150,
-							height: 150,
-							borderRadius: 75,
-							backgroundColor: 'rgba(255,255,255,0.16)',
-							border: '2px solid rgba(255,255,255,0.35)',
+							left: CLOCK.x + Math.cos(rad) * dist - 70,
+							top: CLOCK.y + Math.sin(rad) * dist - 70 + Math.sin((frame + i * 10) / 8) * 10,
+							width: 140,
+							height: 140,
+							borderRadius: 70,
+							backgroundColor: 'white',
 							display: 'flex',
 							alignItems: 'center',
 							justifyContent: 'center',
@@ -90,16 +102,15 @@ const HungrySceneInner: React.FC<Props> = ({line1, line2, style}) => {
 							rotate: `${(1 - Math.min(1, p)) * -90}deg`,
 						}}
 					>
-						<Icon size={104} />
+						<Icon size={96} />
 					</div>
 				);
 			})}
 
-			<Audio name="Ticking" src={staticFile('sfx/tick.wav')} durationInFrames={90} premountFor={fps} volume={0.8} />
-			<Audio name="Pop line 1" src={staticFile('sfx/pop.wav')} from={4} premountFor={fps} />
-			<Audio name="Pop line 2" src={staticFile('sfx/pop.wav')} from={20} premountFor={fps} />
-			<Audio name="Pop icons" src={staticFile('sfx/pop.wav')} from={34} premountFor={fps} volume={0.6} />
-			<Audio name="Pop icons 2" src={staticFile('sfx/pop.wav')} from={46} premountFor={fps} volume={0.6} />
+			<Audio name="Clock whoosh" src={staticFile('sfx/whoosh.wav')} premountFor={fps} volume={0.6} />
+			<Audio name="Alarm" src={staticFile('sfx/alarm.wav')} from={RING_AT} premountFor={fps} volume={0.55} />
+			<Audio name="Icons pop" src={staticFile('sfx/pop.wav')} from={30} premountFor={fps} volume={0.6} />
+			<Audio name="Icons pop 2" src={staticFile('sfx/pop.wav')} from={42} premountFor={fps} volume={0.6} />
 		</AbsoluteFill>
 	);
 };
