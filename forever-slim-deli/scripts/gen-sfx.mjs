@@ -44,14 +44,14 @@ const pop = buffer(0.15);
 }
 writeWav('pop.wav', pop);
 
-// Clock ticking: tick-tock every 8 frames (~267ms) for 3s
+// Clock ticking: tick-tock every 10 frames (1/3 s) for 3s — matches the second hand
 const tick = buffer(3);
-for (let k = 0; k < 12; k++) {
-	const s = Math.round((k * 8) / 30 * SR);
-	const f = k % 2 ? 1900 : 2500;
-	for (let i = 0; i < 1500; i++) {
+for (let k = 0; k < 9; k++) {
+	const s = Math.round(((k * 10) / 30) * SR);
+	const f = k % 2 ? 1500 : 1900;
+	for (let i = 0; i < 1800; i++) {
 		const t = i / SR;
-		tick[s + i] += (Math.sin(2 * Math.PI * f * t) * 0.5 + rand() * 0.5) * Math.exp(-t * 260) * 0.55;
+		tick[s + i] += (Math.sin(2 * Math.PI * f * t) * 0.6 + rand() * 0.3) * Math.exp(-t * 220) * 0.5;
 	}
 }
 writeWav('tick.wav', tick);
@@ -119,14 +119,15 @@ for (const [f, at, g] of [
 }
 writeWav('ding.wav', ding);
 
-// Alarm bell: fast-striking metallic ring, ~1.6s
-const alarm = buffer(1.6);
-for (let k = 0; k < 26; k++) {
-	const s0 = Math.round(k * 0.06 * SR);
-	for (let i = 0; s0 + i < alarm.length && i < 0.12 * SR; i++) {
+// Alarm bell: relaxed double-bell ring, one strike every 0.15s (~4.5 frames), 1.5s
+const alarm = buffer(1.9);
+for (let k = 0; k < 10; k++) {
+	const s0 = Math.round(k * 0.15 * SR);
+	const f = k % 2 ? 1760 : 2093;
+	for (let i = 0; s0 + i < alarm.length && i < 0.4 * SR; i++) {
 		const t = i / SR;
-		const v = (Math.sin(2 * Math.PI * 2350 * t) * 0.5 + Math.sin(2 * Math.PI * 3720 * t) * 0.3 + Math.sin(2 * Math.PI * 5300 * t) * 0.15) * Math.exp(-t * 40);
-		alarm[s0 + i] += v * 0.32 * Math.min(1, (1.6 - k * 0.06) / 0.3);
+		const v = (Math.sin(2 * Math.PI * f * t) * 0.6 + Math.sin(2 * Math.PI * f * 2.76 * t) * 0.18) * Math.min(1, t * 800) * Math.exp(-t * 9);
+		alarm[s0 + i] += v * 0.22 * (k > 7 ? 0.6 : 1);
 	}
 }
 writeWav('alarm.wav', alarm);
