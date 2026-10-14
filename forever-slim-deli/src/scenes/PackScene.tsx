@@ -1,8 +1,8 @@
 import {Audio} from '@remotion/media';
 import type React from 'react';
 import {AbsoluteFill, Img, Interactive, interpolate, Sequence, staticFile, useCurrentFrame, useVideoConfig, type InteractivitySchema} from 'remotion';
-import {backOut, brand, clamp, fontFamily, inOut, pop, progress} from '../theme';
-import {Dish, type DishName, KineticText} from '../ui';
+import {backOut, brand, clamp, expoOut, fontFamily, inOut, pop, progress} from '../theme';
+import {Dish, type DishName} from '../ui';
 
 type Props = {
 	readonly word1: string;
@@ -13,7 +13,7 @@ type Props = {
 
 const easeIn = (t: number) => t * t * t;
 
-const T = {pick: 4, pack: 44, go: 104, leave: 128};
+const T = {pick: 4, pack: 44, go: 100, leave: 126};
 const ROW_Y = 830;
 const BOWL = 300;
 
@@ -27,6 +27,56 @@ const BOWLS: {name: DishName; x: number; pick: number; fly: number}[] = [
 	{name: 'mtabal', x: 865, pick: 28, fly: 90},
 ];
 
+/** A phrase whose words slide up into view; the active phrase sits on a white highlight block. */
+const Phrase: React.FC<{readonly text: string; readonly at: number; readonly on: number; readonly off?: number; readonly size?: number}> = ({
+	text,
+	at,
+	on,
+	off = 100000,
+	size = 118,
+}) => {
+	const frame = useCurrentFrame();
+	const blockOn = progress(frame, on, on + 8) * (1 - progress(frame, off, off + 8));
+	const active = blockOn > 0.5;
+	return (
+		<div style={{position: 'relative', padding: `${size * 0.04}px ${size * 0.2}px ${size * 0.1}px`, overflow: 'hidden'}}>
+			<div
+				style={{
+					position: 'absolute',
+					inset: 0,
+					borderRadius: size * 0.16,
+					backgroundColor: 'white',
+					transformOrigin: '0% 50%',
+					scale: `${blockOn} 1`,
+				}}
+			/>
+			<div style={{position: 'relative', display: 'flex', gap: size * 0.22}}>
+				{text.split(' ').map((w, i) => {
+					const p = interpolate(frame, [at + i * 3, at + i * 3 + 14], [0, 1], {...clamp, easing: expoOut});
+					return (
+						<span
+							key={`${w}-${i}`}
+							style={{
+								display: 'inline-block',
+								fontSize: size,
+								fontWeight: 900,
+								fontStyle: 'italic',
+								letterSpacing: -size * 0.035,
+								lineHeight: 1,
+								color: active ? brand.orange : 'white',
+								translate: `0px ${(1 - p) * 110}%`,
+								rotate: `${(1 - p) * 6}deg`,
+							}}
+						>
+							{w}
+						</span>
+					);
+				})}
+			</div>
+		</div>
+	);
+};
+
 const PackSceneInner: React.FC<Props> = ({word1, word2, word3, style}) => {
 	const frame = useCurrentFrame();
 	const {fps} = useVideoConfig();
@@ -34,10 +84,12 @@ const PackSceneInner: React.FC<Props> = ({word1, word2, word3, style}) => {
 	const bagIn = interpolate(frame, [T.pack, T.pack + 18], [0, 1], {...clamp, easing: backOut});
 	const squash = BOWLS.reduce((acc, b) => acc + interpolate(frame, [b.fly + 13, b.fly + 16, b.fly + 24], [0, 1, 0], clamp), 0);
 	const hop = interpolate(frame, [T.go + 4, T.go + 12, T.go + 20], [0, -90, 0], {...clamp, easing: inOut});
-	const leave = progress(frame, T.leave, T.leave + 20, easeIn);
-	const bagX = BAG.x + leave * 1300;
+	// Exit: the bag squashes, then zooms toward the camera until it fills the frame
+	const crouch = interpolate(frame, [T.leave - 6, T.leave, T.leave + 4], [0, 1, 0], {...clamp, easing: inOut});
+	const zoom = progress(frame, T.leave, T.leave + 24, easeIn);
+	const burst = progress(frame, T.leave + 2, T.leave + 20);
+	const bagX = BAG.x;
 	const bagY = BAG.top + (1 - bagIn) * 1000 + hop;
-	const speed = interpolate(frame, [T.leave - 4, T.leave + 4, T.leave + 22], [0, 1, 0], clamp);
 
 	const bagStyle = (clip?: string): React.CSSProperties => ({
 		position: 'absolute',
@@ -45,40 +97,44 @@ const PackSceneInner: React.FC<Props> = ({word1, word2, word3, style}) => {
 		top: bagY,
 		width: BAG.w,
 		height: BAG.h,
-		transformOrigin: '50% 100%',
-		scale: `${1 + squash * 0.04} ${1 - squash * 0.05}`,
-		transform: `skewX(${-speed * 12}deg)`,
+		transformOrigin: zoom > 0 ? '50% 62%' : '50% 100%',
+		scale: `${(1 + squash * 0.04 + crouch * 0.06) * (1 + zoom * 9)} ${(1 - squash * 0.05 - crouch * 0.08) * (1 + zoom * 9)}`,
+		rotate: `${zoom * -8}deg`,
 		clipPath: clip,
 	});
 
 	return (
 		<AbsoluteFill style={{fontFamily, backgroundColor: brand.orange, overflow: 'hidden', ...style}}>
-			<KineticText
-				at={T.pick}
-				top={150}
-				lines={[
-					{text: word1, color: 'white', size: 140, italic: true},
-					{text: word2, color: 'white', size: 140, italic: true, at: T.pack},
-					{text: word3, color: brand.orange, size: 180, italic: true, block: 'white', at: T.go},
-				]}
-			/>
+			<div style={{position: 'absolute', left: 0, right: 0, top: 160, display: 'flex', justifyContent: 'center', gap: 18}}>
+				<Phrase text={word1} at={T.pick} on={T.pick + 6} off={T.pack} />
+				<Phrase text={word2} at={T.pack} on={T.pack + 6} off={T.go} />
+			</div>
+			<div style={{position: 'absolute', left: 0, right: 0, top: 320, display: 'flex', justifyContent: 'center'}}>
+				<Phrase text={word3} at={T.go} on={T.go + 6} size={200} />
+			</div>
 
-			{/* Speed lines when the bag leaves */}
-			{[0, 1, 2, 3, 4].map((k) => (
-				<div
-					key={k}
-					style={{
-						position: 'absolute',
-						left: bagX - 900 + k * 40,
-						top: bagY + 200 + k * 110,
-						width: 600 - k * 60,
-						height: 14,
-						borderRadius: 7,
-						backgroundColor: 'white',
-						opacity: speed,
-					}}
-				/>
-			))}
+			{/* Burst rays as the bag zooms toward the camera */}
+			{new Array(14).fill(true).map((_, k) => {
+				const ang = (k / 14) * 360;
+				return (
+					<div
+						key={k}
+						style={{
+							position: 'absolute',
+							left: BAG.x - 9,
+							top: BAG.top + BAG.h * 0.55,
+							width: 18,
+							height: 160 + burst * 500,
+							borderRadius: 9,
+							backgroundColor: 'white',
+							transformOrigin: '50% 0%',
+							rotate: `${ang}deg`,
+							translate: `0px ${burst * 260}px`,
+							opacity: burst > 0 && burst < 1 ? 1 - burst : 0,
+						}}
+					/>
+				);
+			})}
 
 			{/* Bag (whole photo shows the inside back wall) */}
 			<Img src={staticFile('bag.png')} style={{...bagStyle(), filter: 'drop-shadow(0 40px 40px rgba(90,30,0,0.35))'}} />
@@ -131,7 +187,7 @@ const PackSceneInner: React.FC<Props> = ({word1, word2, word3, style}) => {
 			))}
 			<Audio name="Bag up" src={staticFile('sfx/whoosh.wav')} from={T.pack - 2} premountFor={fps} volume={0.5} />
 			<Audio name="Go!" src={staticFile('sfx/pop.wav')} from={T.go} premountFor={fps} />
-			<Audio name="Bag leaves" src={staticFile('sfx/whoosh.wav')} from={T.leave - 2} premountFor={fps} volume={0.9} />
+			<Audio name="Bag zoom" src={staticFile('sfx/whoosh.wav')} from={T.leave} premountFor={fps} volume={0.9} />
 		</AbsoluteFill>
 	);
 };

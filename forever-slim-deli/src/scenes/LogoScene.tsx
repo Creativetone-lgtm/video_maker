@@ -19,7 +19,7 @@ const LogoSceneInner: React.FC<Props> = ({deli, tagline, style}) => {
 	const corner = progress(frame, 0, 30, expoOut);
 
 	return (
-		<AbsoluteFill style={{fontFamily, backgroundColor: brand.green, ...style}}>
+		<AbsoluteFill style={{fontFamily, backgroundColor: brand.greenBg, ...style}}>
 
 			{/* Dishes framing the corners */}
 			<Dish name="hummus" x={-40 + (1 - corner) * -400} y={1760} size={560} style={{rotate: `${frame * 0.3}deg`}} />

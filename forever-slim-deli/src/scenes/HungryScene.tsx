@@ -1,7 +1,7 @@
 import {Audio} from '@remotion/media';
 import type React from 'react';
 import {AbsoluteFill, Img, Interactive, interpolate, staticFile, useCurrentFrame, useVideoConfig, type InteractivitySchema} from 'remotion';
-import {Chickpea, Lemon, Mint, Olive, Pomegranate, Tomato} from '../icons';
+import {Chickpea, Chili, Garlic, Lemon, Pomegranate, Tomato} from '../icons';
 import {backOut, brand, clamp, fontFamily, inOut, pop} from '../theme';
 import {KineticText} from '../ui';
 
@@ -22,8 +22,8 @@ const T = {land: 24, sweepEnd: 62, ring: 58, ringEnd: 100};
 const ICONS = [
 	{Icon: Tomato, angle: -155, delay: 30},
 	{Icon: Lemon, angle: -25, delay: 34},
-	{Icon: Olive, angle: 15, delay: 38},
-	{Icon: Mint, angle: 165, delay: 42},
+	{Icon: Garlic, angle: 15, delay: 38},
+	{Icon: Chili, angle: 165, delay: 42},
 	{Icon: Chickpea, angle: 125, delay: 46},
 	{Icon: Pomegranate, angle: 55, delay: 50},
 ];
@@ -53,7 +53,7 @@ const HungrySceneInner: React.FC<Props> = ({line1, line2, style}) => {
 	const hammer = Math.sin((frame - T.ring) * 0.7) > 0 ? ringEnv : 0;
 
 	return (
-		<AbsoluteFill style={{fontFamily, backgroundColor: brand.green, ...style}}>
+		<AbsoluteFill style={{fontFamily, backgroundColor: brand.greenBg, ...style}}>
 			<KineticText
 				at={4}
 				top={210}
@@ -124,16 +124,15 @@ const HungrySceneInner: React.FC<Props> = ({line1, line2, style}) => {
 							top: CLOCK.y + Math.sin(rad) * dist - 70 + Math.sin((frame + i * 10) / 12) * 10,
 							width: 140,
 							height: 140,
-							borderRadius: 70,
-							backgroundColor: 'white',
 							display: 'flex',
 							alignItems: 'center',
 							justifyContent: 'center',
 							scale: String(p),
 							rotate: `${(1 - Math.min(1, p)) * -60}deg`,
+							filter: 'drop-shadow(0 10px 12px rgba(20,40,10,0.3))',
 						}}
 					>
-						<Icon size={96} />
+						<Icon size={140} />
 					</div>
 				);
 			})}

@@ -2,7 +2,6 @@ import {Audio} from '@remotion/media';
 import {linearTiming, springTiming, TransitionSeries} from '@remotion/transitions';
 import {fade} from '@remotion/transitions/fade';
 import {slide} from '@remotion/transitions/slide';
-import {wipe} from '@remotion/transitions/wipe';
 import {AbsoluteFill, interpolate, staticFile, useVideoConfig} from 'remotion';
 import {FavoritesScene} from './scenes/FavoritesScene';
 import {HungryScene} from './scenes/HungryScene';
@@ -32,7 +31,7 @@ export const DeliReel: React.FC = () => {
 				<TransitionSeries.Sequence name="Pick it. Pack it. Go!" durationInFrames={165} premountFor={fps}>
 					<PackScene word1="Pick it." word2="Pack it." word3="Go!" />
 				</TransitionSeries.Sequence>
-				<TransitionSeries.Transition presentation={wipe({direction: 'from-left'})} timing={linearTiming({durationInFrames: 15})} />
+				<TransitionSeries.Transition presentation={fade()} timing={linearTiming({durationInFrames: 15})} />
 				<TransitionSeries.Sequence name="Logo" durationInFrames={120} premountFor={fps}>
 					<LogoScene deli="DELI" tagline="Fresh. Healthy. On the Go." />
 				</TransitionSeries.Sequence>

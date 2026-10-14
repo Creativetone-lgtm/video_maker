@@ -18,7 +18,9 @@ export const fontFamily = '"Neue Haas Display", Helvetica, Arial, sans-serif';
 export const brand = {
 	orange: '#E85D06',
 	orangeLight: '#FF8A3D',
-	green: '#5D8939',
+	green: '#5C893A',
+	/** Lighter tint of the brand green, for full-frame backgrounds. */
+	greenBg: '#6A9E43',
 	greenDark: '#3F6328',
 	greenDeep: '#2C4A1C',
 	greenLight: '#EAF2DF',
