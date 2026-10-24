@@ -3,7 +3,7 @@ import type React from 'react';
 import {AbsoluteFill, interpolate, Sequence, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import {Exterior} from './Exterior';
 import {Interior} from './Interior';
-import {Bubble, Caption, Dip, Hud, MoneyPop, RedX} from './overlays';
+import {Bubble, Dip, Hud, MoneyPop, RedX} from './overlays';
 import {Person} from './Person';
 import {backOut, c, clamp, expoOut, fontFamily, inOut, pop, progress, S} from './theme';
 
@@ -472,16 +472,6 @@ const FinalFrame: React.FC = () => {
 // ---------------------------------------------------------------------------
 // The whole story
 // ---------------------------------------------------------------------------
-const CAPTIONS: [string, number, number][] = [
-	['قررت تفتح مطعم أحلامك؟ حلو كتير!', 12, 140],
-	['دفعت عالديكور، عالعدّة، عالموظفين… وما وفّرت ولا دولار!', 170, 382],
-	['بس بس وصلنا للماركتينغ… فجأة صار بدنا نوفّر!', 400, 562],
-	['فتحت المطعم… نطرت الزباين… بس الزباين ما إجوا!', 585, 772],
-	['وصرت تسأل حالك… ليش المطعم فاضي؟', 790, 925],
-	['لأنك صرفت كل شي لتفتح مطعم…', 940, 1004],
-	['ونسيت تصرف لتخلّي العالم تعرف إنك فتحت!', 1006, 1076],
-];
-
 export const Story: React.FC = () => {
 	const frame = useCurrentFrame();
 	const {fps} = useVideoConfig();
@@ -514,9 +504,6 @@ export const Story: React.FC = () => {
 
 			<Hud cash={cashAt(frame)} customers={customersAt(frame)} day={dayAt(frame)} cashFlash={Math.max(purchaseFlash, brokeFlash)} opacity={interpolate(frame, [S.final - 12, S.final - 2], [1, 0], clamp)} />
 
-			{CAPTIONS.map(([text, at, until]) => (
-				<Caption key={at} text={text} at={at} until={until} />
-			))}
 
 			<Dip at={S.spend} />
 			<Dip at={S.opening} />
